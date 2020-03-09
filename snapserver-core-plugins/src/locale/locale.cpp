@@ -1,5 +1,5 @@
 // Snap Websites Server -- handle various locale information such as timezone and date output, number formatting for display, etc.
-// Copyright (c) 2011-2018  Made to Order Software Corp.  All Rights Reserved
+// Copyright (c) 2011-2019  Made to Order Software Corp.  All Rights Reserved
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -15,20 +15,28 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
+
 // self
 //
 #include "snap_locale.h"
 #include "qunicodestring.h"
 
+
 // other plugins
 //
 #include "../content/content.h"
+
 
 // snapwebsites lib
 //
 #include <snapwebsites/log.h>
 #include <snapwebsites/mkgmtime.h>
-#include <snapwebsites/not_used.h>
+
+
+// snapdev lib
+//
+#include <snapdev/not_used.h>
+
 
 // UIC (unicode) lib
 //
@@ -41,7 +49,7 @@
 
 // last include
 //
-#include <snapwebsites/poison.h>
+#include <snapdev/poison.h>
 
 
 
@@ -262,7 +270,7 @@ locale::locale_list_t const & locale::get_locale_list()
         // the various objects offering a getAvailableLocales()
         // function... (TBD)
         int32_t count;
-        Locale const * l(DateFormat::getAvailableLocales(count));
+        ICUNS Locale const * l(ICUNS DateFormat::getAvailableLocales(count));
         for(int32_t i(0); i < count; ++i)
         {
             locale_info_t info;
@@ -340,7 +348,7 @@ locale::locale::timezone_list_t const & locale::get_timezone_list()
     // read the file only if empty
     if(f_timezone_list.empty())
     {
-        StringEnumeration * zone_list(TimeZone::createEnumeration());
+        ICUNS StringEnumeration * zone_list(ICUNS TimeZone::createEnumeration());
         if(zone_list != nullptr)
         {
             for(;;)
@@ -353,7 +361,7 @@ locale::locale::timezone_list_t const & locale::get_timezone_list()
                 {
                     if(U_FAILURE(err))
                     {
-                        ErrorCode err_code;
+                        ICUNS ErrorCode err_code;
                         err_code.set(err);
                     }
                     break;
@@ -731,9 +739,9 @@ SNAP_LOG_TRACE("*** Set locale_settings::timezone [")(f_current_timezone)("]");
 QString locale::format_date(time_t d)
 {
     QUnicodeString const timezone_id(f_current_timezone);
-    LocalPointer<TimeZone> tz(TimeZone::createTimeZone(timezone_id)); // TODO: verify that it took properly
-    Locale const l(f_current_locale.toUtf8().data()); // TODO: verify that it took properly
-    LocalPointer<DateFormat> dt(DateFormat::createDateInstance(DateFormat::kDefault, l));
+    ICUNS LocalPointer<ICUNS TimeZone> tz(ICUNS TimeZone::createTimeZone(timezone_id)); // TODO: verify that it took properly
+    ICUNS Locale const l(f_current_locale.toUtf8().data()); // TODO: verify that it took properly
+    ICUNS LocalPointer<ICUNS DateFormat> dt(ICUNS DateFormat::createDateInstance(ICUNS DateFormat::kDefault, l));
     dt->setTimeZone(*tz);
     UDate const udate(d * 1000LL);
     QUnicodeString u;
@@ -762,9 +770,9 @@ QString locale::format_date(time_t d)
 QString locale::format_time(time_t d)
 {
     QUnicodeString const timezone_id(f_current_timezone);
-    LocalPointer<TimeZone> tz(TimeZone::createTimeZone(timezone_id)); // TODO: verify that it took properly
-    Locale const l(f_current_locale.toUtf8().data()); // TODO: verify that it took properly
-    LocalPointer<DateFormat> dt(DateFormat::createTimeInstance(DateFormat::kDefault, l));
+    ICUNS LocalPointer<ICUNS TimeZone> tz(ICUNS TimeZone::createTimeZone(timezone_id)); // TODO: verify that it took properly
+    ICUNS Locale const l(f_current_locale.toUtf8().data()); // TODO: verify that it took properly
+    ICUNS LocalPointer<ICUNS DateFormat> dt(ICUNS DateFormat::createTimeInstance(ICUNS DateFormat::kDefault, l));
     dt->setTimeZone(*tz);
     UDate const udate(d * 1000LL);
     QUnicodeString u;
@@ -1232,14 +1240,14 @@ time_t locale::parse_date(QString const & date, parse_error_t & errcode)
     }
     else
     {
-        Locale const l(f_current_locale.toUtf8().data()); // TODO: verify that it took properly
-        LocalPointer<DateFormat> dt(DateFormat::createDateInstance(DateFormat::kDefault, l));
+        ICUNS Locale const l(f_current_locale.toUtf8().data()); // TODO: verify that it took properly
+        ICUNS LocalPointer<ICUNS DateFormat> dt(ICUNS DateFormat::createDateInstance(ICUNS DateFormat::kDefault, l));
 
-        LocalPointer<TimeZone> tz(TimeZone::createTimeZone(QUnicodeString(f_current_timezone))); // TODO: verify that it took properly
+        ICUNS LocalPointer<ICUNS TimeZone> tz(ICUNS TimeZone::createTimeZone(QUnicodeString(f_current_timezone))); // TODO: verify that it took properly
         dt->setTimeZone(*tz);
 
         QUnicodeString const date_format(date);
-        ParsePosition pos;
+        ICUNS ParsePosition pos;
         UDate const result(dt->parse(date_format, pos));
 
         if(pos.getIndex() != date_format.length())

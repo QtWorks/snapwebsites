@@ -1,5 +1,5 @@
 // Snap Websites Server -- manage permissions for users, forms, etc.
-// Copyright (c) 2013-2018  Made to Order Software Corp.  All Rights Reserved
+// Copyright (c) 2013-2019  Made to Order Software Corp.  All Rights Reserved
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -15,13 +15,27 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
+
+// self
+//
 #include "content.h"
 
-#include <snapwebsites/log.h>
-#include <snapwebsites/not_reached.h>
-#include <snapwebsites/not_used.h>
 
-#include <snapwebsites/poison.h>
+// snapwebsites lib
+//
+#include <snapwebsites/log.h>
+
+
+// snapdev lib
+//
+#include <snapdev/not_reached.h>
+#include <snapdev/not_used.h>
+
+
+// last include
+//
+#include <snapdev/poison.h>
+
 
 
 SNAP_PLUGIN_EXTENSION_START(content)

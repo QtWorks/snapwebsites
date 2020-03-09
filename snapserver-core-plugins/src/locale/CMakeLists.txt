@@ -11,7 +11,7 @@
 #      See the CMake documentation.
 #
 # License:
-#      Copyright (c) 2011-2018  Made to Order Software Corp.  All Rights Reserved
+#      Copyright (c) 2011-2019  Made to Order Software Corp.  All Rights Reserved
 #
 #      https://snapwebsites.org/
 #      contact@m2osw.com
@@ -33,7 +33,14 @@
 
 project(plugin_locale)
 
-find_package( ICU     REQUIRED )
+# The ICU Find function changed and was added to the OS
+string(REGEX MATCH "Linux-4.4" OS_NAME_AND_VERSION ${CMAKE_SYSTEM})
+if("${OS_NAME_AND_VERSION}" STREQUAL "Linux-4.4")
+    find_package( ICU REQUIRED )
+else()
+    find_package( ICU REQUIRED COMPONENTS uc i18n )
+endif()
+
 find_package( Qt5Core REQUIRED )
 
 include_directories(
@@ -45,7 +52,7 @@ include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
-qt5_add_resources( SNAP_MANAGER_RESOURCES_RCC
+qt5_add_resources(SNAP_MANAGER_RESOURCES_RCC
     locale.qrc
 )
 
@@ -67,12 +74,22 @@ target_link_libraries( locale
 )
 
 install(
-    TARGETS locale LIBRARY DESTINATION ${PLUGIN_INSTALL_DIR}
+    TARGETS
+        locale
+
+    LIBRARY DESTINATION
+        ${PLUGIN_INSTALL_DIR}
 )
+
 install(
-    DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
-    DESTINATION include/snapwebsites/plugins/locale
-    FILES_MATCHING PATTERN "*.h"
+    DIRECTORY
+        ${CMAKE_CURRENT_SOURCE_DIR}/
+
+    DESTINATION
+        include/snapwebsites/plugins/locale
+
+    FILES_MATCHING
+        PATTERN "*.h"
 )
 
 # vim: ts=4 sw=4 et

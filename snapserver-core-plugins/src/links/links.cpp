@@ -1,5 +1,5 @@
 // Snap Websites Server -- manage double links
-// Copyright (c) 2012-2018  Made to Order Software Corp.  All Rights Reserved
+// Copyright (c) 2012-2019  Made to Order Software Corp.  All Rights Reserved
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -15,21 +15,44 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
+
+// self
+//
 #include "links.h"
 
+
+// other plugins
+//
 // TODO: remove dependency on content (because content includes links...)
 //       it may be that content and links should be merged (oh well!) TBD
 #include "../content/content.h"
 
-#include <snapwebsites/log.h>
-#include <snapwebsites/not_reached.h>
-#include <snapwebsites/not_used.h>
 
+// snapwebsites lib
+//
+#include <snapwebsites/log.h>
+
+
+// snapdev lib
+//
+#include <snapdev/not_reached.h>
+#include <snapdev/not_used.h>
+
+
+// C++ lib
+//
 #include <iostream>
 
+
+// Qt lib
+//
 #include <QtCore/QDebug>
 
-#include <snapwebsites/poison.h>
+
+// last include
+//
+#include <snapdev/poison.h>
+
 
 
 SNAP_PLUGIN_START(links, 1, 0)
@@ -1480,6 +1503,7 @@ int64_t links::do_update(int64_t last_updated)
 libdbproxy::table::pointer_t links::get_links_table()
 {
     // retrieve links index table if not there yet
+    //
     if(!f_links_table)
     {
         f_links_table = f_snap->get_table(get_name(name_t::SNAP_NAME_LINKS_TABLE));
@@ -1496,12 +1520,15 @@ libdbproxy::table::pointer_t links::get_links_table()
 void links::init_tables()
 {
     // retrieve links index table if not there yet
+    //
     get_links_table();
 
     // retrieve content table if not there yet
+    //
     if(!f_branch_table)
     {
         // TODO: remove this circular dependency on content plugin
+        //
         f_branch_table = content::content::instance()->get_branch_table();
     }
 }
@@ -2046,7 +2073,7 @@ void links::delete_link(link_info const & info, int const delete_record_count)
                                     (" / ")
                                     (key_with_branch)
                                     ("\" (cell missing in \"links\" table).");
-                    return;
+                    continue;
                 }
                 // note that this is a multi-link, but in a (1:*) there is only
                 // one destination that correspond to the (1:...) and thus only
@@ -2192,6 +2219,7 @@ void links::delete_link(link_info const & info, int const delete_record_count)
 
         // finally, tell that the source changed after all the drops
         // happened in the source;
+        //
         if(modified)
         {
             modified_link(info, false);
@@ -2242,6 +2270,7 @@ void links::delete_this_link(link_info const & source, link_info const & destina
     init_tables();
 
     // drop the source info
+    //
     libdbproxy::row::pointer_t src_row(f_links_table->getRow(source.link_key()));
     QString const destination_key_with_branch(destination.key_with_branch());
     if(src_row->exists(destination_key_with_branch)) // should always be true
@@ -2254,6 +2283,7 @@ void links::delete_this_link(link_info const & source, link_info const & destina
     }
 
     // drop the destination info
+    //
     libdbproxy::row::pointer_t dst_row(f_links_table->getRow(destination.link_key()));
     QString const source_key_with_branch(source.key_with_branch());
     if(dst_row->exists(source_key_with_branch)) // should always be true
@@ -2418,8 +2448,103 @@ void links::fix_branch_copy_link(libdbproxy::cell::pointer_t source_cell, libdbp
 }
 
 
+
+/** \brief Enumarate the children of a given page.
+ *
+ * This function is used to list all the children of a given page. The
+ * \p callback function gets called with an \p ipath to that page.
+ *
+ * The \p callback may return `true` or `false`.
+ *
+ * When the \p callback function returns `true`, this function continues
+ * processing the \p ipath children.
+ *
+ * When the \p callback function returns `false`, this function stops
+ * immediately and it returns `false`.
+ *
+ * \param[in] parent_ipath  The path_info_t object you want to list the children of.
+ * \param[in] callback  The function to call with each child path_info_t.
+ * \param[in] all_statuses  Whether to send all children (true) or only the
+ *                          `NORMAL` children.
+ *
+ * \return `true` if all the calls to \p callback returned `true`, `false` if
+ *         a call to \p callback returns `false`.
+ */
+bool links::enumerate_children(content::path_info_t & parent_ipath
+                             , callback_func_t callback
+                             , bool all_status)
+{
+    link_info info(content::get_name(content::name_t::SNAP_NAME_CONTENT_CHILDREN)
+                        , false
+                        , parent_ipath.get_key()
+                        , parent_ipath.get_branch());
+    QSharedPointer<link_context> link_ctxt(new_link_context(info));
+    link_info child_info;
+    while(link_ctxt->next_link(child_info))
+    {
+        content::path_info_t ipath;
+        ipath.set_path(child_info.key());
+
+        if(!all_status)
+        {
+            // make sure page is a normal state
+            //
+            content::path_info_t::status_t const status(ipath.get_status());
+            if(status.get_state() != content::path_info_t::status_t::state_t::NORMAL)
+            {
+                continue;
+            }
+        }
+
+        if(!callback(ipath))
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+
+
+
+
 namespace details
 {
+
+// TBD maybe this should be a taxonomy function and not directly a links option?
+//     (it would remove some additional dependencies on the content plugin!)
+void call_link(snap_expr::variable_t & result, snap_expr::variable_t::variable_vector_t const & sub_results)
+{
+    if(sub_results.size() != 2)
+    {
+        throw snap_expr::snap_expr_exception_invalid_number_of_parameters("invalid number of parameters to call link() expected 2 parameters");
+    }
+    QString const link_name(sub_results[0].get_string("linked_to(1)"));
+    QString const page(sub_results[1].get_string("linked_to(2)"));
+    if(link_name.isEmpty()
+    || page.isEmpty())
+    {
+        throw snap_expr::snap_expr_exception_invalid_parameter_value("invalid parameters to call link(), the first 2 parameters cannot be empty strings");
+    }
+
+    content::path_info_t ipath;
+    ipath.set_path(page);
+    link_info link_context_info(link_name, true, ipath.get_key(), ipath.get_branch());
+    QSharedPointer<link_context> link_ctxt(links::instance()->new_link_context(link_context_info));
+    link_info result_info;
+    if(link_ctxt->next_link(result_info))
+    {
+        // the link exists, return it
+        //
+        result.set_value(result_info.key());
+    }
+    else
+    {
+        result.set_value(QString());
+    }
+}
+
 
 // TBD maybe this should be a taxonomy function and not directly a links option?
 //     (it would remove some additional dependencies on the content plugin!)
@@ -2494,6 +2619,10 @@ void call_linked_to(snap_expr::variable_t & result, snap_expr::variable_t::varia
 
 snap_expr::functions_t::function_call_table_t const links_functions[] =
 {
+    {
+        "link",
+        call_link
+    },
     { // check whether a page is linked to a type
         "linked_to",
         call_linked_to

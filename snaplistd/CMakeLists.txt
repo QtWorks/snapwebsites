@@ -10,7 +10,7 @@
 #      See the CMake documentation.
 #
 # License:
-#      Copyright (c) 2016-2018  Made to Order Software Corp.  All Rights Reserved
+#      Copyright (c) 2016-2019  Made to Order Software Corp.  All Rights Reserved
 #
 #      https://snapwebsites.org/
 #      contact@m2osw.com
@@ -36,9 +36,10 @@ project( snaplistd_project )
 # Find includes in corresponding build directories
 set( CMAKE_INCLUDE_CURRENT_DIR ON )
 
-include_directories( SYSTEM
-    ${Qt5Core_INCLUDE_DIRS}
-    ${Qt5Xml_INCLUDE_DIRS}
+include_directories(
+    SYSTEM
+        ${Qt5Core_INCLUDE_DIRS}
+        ${Qt5Xml_INCLUDE_DIRS}
 )
 set( QT_LIBRARIES
     Qt5::Core

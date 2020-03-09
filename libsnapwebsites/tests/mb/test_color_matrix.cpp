@@ -1,5 +1,5 @@
 // Snap Websites Server -- test matrix.cpp/h
-// Copyright (c) 2014-2018  Made to Order Software Corp.  All Rights Reserved
+// Copyright (c) 2014-2019  Made to Order Software Corp.  All Rights Reserved
 //
 // https://snapwebsites.org/
 // contact@m2osw.com
@@ -27,27 +27,31 @@
 // client won't be able to connect.
 //
 
+
+// TODO: move this test to the snapdev project where matrix.h is defined
+//
+
 // snapwebsites lib
 //
-#include <snapwebsites/matrix.h>
-//#include <snapwebsites/file_content.h>
-//#include <snapwebsites/hexadecimal_string.h>
 #include <snapwebsites/log.h>
-//#include <snapwebsites/not_reached.h>
-//#include <snapwebsites/qstring_stream.h>
-//#include <snapwebsites/snapwebsites.h>
 
-// Qt Lib
-//
-//#include <QFile>
 
-// C++ lib
+// snapdev lib
 //
-//#include <functional>
+#include <snapdev/matrix.h>
 
-// C lib
+
+// Qt lib
 //
-//#include <unistd.h>
+#include <QImage>
+
+
+// last include
+//
+#include <snapdev/poison.h>
+
+
+
 
 
 
@@ -166,7 +170,7 @@ void create_color_image()
 void apply_color_matrix()
 {
     QImage img(QString::fromUtf8(g_image_filename));
-    img.convertToFormat(QImage::Format_RGB32);
+    img = img.convertToFormat(QImage::Format_RGB32);
 
 // 17 is pretty much the best precision we can get here
 //

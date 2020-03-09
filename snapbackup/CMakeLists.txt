@@ -9,7 +9,7 @@
 #      See the CMake documentation.
 #
 # License:
-#      Copyright (c) 2011-2018  Made to Order Software Corp.  All Rights Reserved
+#      Copyright (c) 2011-2019  Made to Order Software Corp.  All Rights Reserved
 #
 #      https://snapwebsites.org/
 #      contact@m2osw.com
@@ -46,6 +46,7 @@ set( CMAKE_AUTOMOC TRUE )
 ## Include support modules
 ##
 set( CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake ${CMAKE_MODULE_PATH} )
+
 set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wold-style-cast -Wnoexcept" )
 set( CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -fwrapv"                       )
 

@@ -13,7 +13,7 @@
 #      See the CMake documentation.
 #
 # License:
-#      Copyright (c) 2011-2018  Made to Order Software Corp.  All Rights Reserved
+#      Copyright (c) 2011-2019  Made to Order Software Corp.  All Rights Reserved
 #
 #      https://snapwebsites.org/
 #      contact@m2osw.com
@@ -54,6 +54,7 @@ qt5_add_resources(SNAP_MANAGER_RESOURCES_RCC
 snap_validate_xml( content.xml                         content.dtd           )
 snap_validate_xml( epayment-paypal-settings-page.xml   editor-form.dtd       )
 snap_validate_xml( epayment-paypal-settings-parser.xsl simplified-xslt20.dtd )
+snap_validate_xml( epayment_paypal-tables.xml          tables.xsd            )
 snap_validate_css( epayment-paypal.css                                       )
 snap_validate_js ( epayment-paypal.js                                        )
 

@@ -1,5 +1,5 @@
 // Snap Websites Server -- handle snapmanager bundles
-// Copyright (c) 2016-2018  Made to Order Software Corp.  All Rights Reserved
+// Copyright (c) 2016-2019  Made to Order Software Corp.  All Rights Reserved
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -19,38 +19,48 @@
 //
 #include "snapmanager/bundle.h"
 
+
 // snapmanager lib
 //
 #include "snapmanager/manager.h"
+
 
 // snapwebsites lib
 //
 #include <snapwebsites/file_content.h>
 #include <snapwebsites/log.h>
 #include <snapwebsites/mkdir_p.h>
-#include <snapwebsites/not_used.h>
 #include <snapwebsites/process.h>
 #include <snapwebsites/qdomhelpers.h>
 #include <snapwebsites/snap_string_list.h>
-#include <snapwebsites/tokenize_string.h>
+
+
+// snapdev lib
+//
+#include <snapdev/not_used.h>
+#include <snapdev/tokenize_string.h>
+
 
 // boost lib
 //
 #include <boost/algorithm/string.hpp>
+
 
 // C++ lib
 //
 #include <algorithm>
 #include <fstream>
 
+
 // C lib
 //
 #include <sys/stat.h>
 
 
-// last entry
+// last include
 //
-#include <snapwebsites/poison.h>
+#include <snapdev/poison.h>
+
 
 
 /** \file

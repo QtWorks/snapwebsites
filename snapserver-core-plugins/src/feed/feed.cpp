@@ -1,5 +1,5 @@
 // Snap Websites Server -- different feed handlers (RSS, Atom, RSS_Cloud, PubSubHubbub, etc.)
-// Copyright (c) 2013-2018  Made to Order Software Corp.  All Rights Reserved
+// Copyright (c) 2013-2019  Made to Order Software Corp.  All Rights Reserved
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -15,27 +15,47 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
+
+// self
+//
 #include "feed.h"
 
+
+// other plugins
+//
 #include "../attachment/attachment.h"
 #include "../filter/filter.h"
 #include "../list/list.h"
 #include "../locale/snap_locale.h"
 #include "../path/path.h"
 
+
+// snapwebsites lib
+//
 #include <snapwebsites/log.h>
-#include <snapwebsites/not_reached.h>
-#include <snapwebsites/not_used.h>
 #include <snapwebsites/qdomhelpers.h>
 #include <snapwebsites/qdomxpath.h>
 #include <snapwebsites/qhtmlserializer.h>
 #include <snapwebsites/qxmlmessagehandler.h>
 #include <snapwebsites/xslt.h>
 
+
+// snapdev lib
+//
+#include <snapdev/not_reached.h>
+#include <snapdev/not_used.h>
+
+
+// Qt lib
+//
 #include <QFile>
 #include <QTextStream>
 
-#include <snapwebsites/poison.h>
+
+// last include
+//
+#include <snapdev/poison.h>
+
 
 
 SNAP_PLUGIN_START(feed, 1, 0)

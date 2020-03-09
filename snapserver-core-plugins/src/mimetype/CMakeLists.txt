@@ -15,7 +15,7 @@
 #      See the CMake documentation.
 #
 # License:
-#      Copyright (c) 2011-2018  Made to Order Software Corp.  All Rights Reserved
+#      Copyright (c) 2011-2019  Made to Order Software Corp.  All Rights Reserved
 #
 #      https://snapwebsites.org/
 #      contact@m2osw.com
@@ -155,6 +155,7 @@ include_directories(
 )
 target_link_libraries( ${PROJECT_NAME}
     ${SNAPWEBSITES_LIBRARIES}
+    ${LIBEXCEPT_LIBRARIES}
     Qt5::Core
 )
 # TODO: only install in the development version? (do we have such a component?)

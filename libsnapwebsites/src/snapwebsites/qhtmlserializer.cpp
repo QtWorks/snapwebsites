@@ -1,5 +1,5 @@
 // Snap Websites Servers -- generate HTML from the output of an XML Query
-// Copyright (c) 2011-2018  Made to Order Software Corp.  All Rights Reserved
+// Copyright (c) 2011-2019  Made to Order Software Corp.  All Rights Reserved
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -24,11 +24,23 @@
 //
 // Also unfortunate, Qt does not provide such a class.
 
+
+// self
+//
 #include "snapwebsites/qhtmlserializer.h"
 
+
+// C++ lib
+//
 #include <stdexcept>
 
-#include "snapwebsites/poison.h"
+
+// last include
+//
+#include <snapdev/poison.h>
+
+
+
 
 
 QHtmlSerializer::QHtmlSerializer(QXmlNamePool namepool, QBuffer *output, bool const is_html)

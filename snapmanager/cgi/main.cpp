@@ -2,7 +2,7 @@
 // File:        snapmanager/cgi/main.cpp
 // Object:      Initialize and starts the snapmanager.cgi process.
 //
-// Copyright:   Copyright (c) 2016-2018  Made to Order Software Corp.  All Rights Reserved
+// Copyright:   Copyright (c) 2016-2019  Made to Order Software Corp.  All Rights Reserved
 //              All Rights Reserved.
 //
 // https://snapwebsites.org/
@@ -27,17 +27,25 @@
 // THE SOFTWARE.
 //
 
-// ourselves
+
+// self
 //
 #include "snapmanagercgi.h"
+
+
+// advgetopt
+//
+#include <advgetopt/exception.h>
+
 
 // Qt lib
 //
 #include <QCoreApplication>
 
-// last entry
+
+// last include
 //
-#include <snapwebsites/poison.h>
+#include <snapdev/poison.h>
 
 
 namespace snap
@@ -118,6 +126,10 @@ int main(int argc, char * argv[])
         {
             return cgi->error("503 Service Unavailable", nullptr, "The Snap! C++ CGI script caught an unknown exception.");
         }
+    }
+    catch( advgetopt::getopt_exit const & except )
+    {
+        return except.code();
     }
     catch(std::exception const & e)
     {

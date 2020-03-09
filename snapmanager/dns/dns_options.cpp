@@ -1,5 +1,5 @@
 // Snap Websites -- tool to add/edit/remove DNS options
-// Copyright (c) 2016-2018  Made to Order Software Corp.  All Rights Reserved
+// Copyright (c) 2016-2019  Made to Order Software Corp.  All Rights Reserved
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -15,20 +15,38 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
-// itself
+
+// self
 //
 //#include "dns_options.h"
+
+
+// snapmanager lib
+//
+#include <snapmanager/version.h>
+
 
 // advgetopt lib
 //
 #include "advgetopt/advgetopt.h"
+#include "advgetopt/exception.h"
+
 
 // snapwebsites lib
 //
 #include <snapwebsites/file_content.h>
-#include <snapwebsites/not_reached.h>
-//#include <snapwebsites/not_used.h>
 #include <snapwebsites/version.h>
+
+
+// snapdev lib
+//
+#include <snapdev/not_reached.h>
+
+
+// boost lib
+//
+#include <boost/preprocessor/stringize.hpp>
+
 
 // C++ lib
 //
@@ -36,46 +54,29 @@
 #include <vector>
 
 
-
-// last entry
+// last include
 //
-#include <snapwebsites/poison.h>
+#include <snapdev/poison.h>
+
 
 
 namespace
 {
 
-std::vector<std::string> const g_configuration_files; // Empty
 
-advgetopt::getopt::option const g_options[] =
+advgetopt::option const g_options[] =
 {
     {
         '\0',
-        advgetopt::getopt::GETOPT_FLAG_SHOW_USAGE_ON_ERROR,
-        nullptr,
-        nullptr,
-        "Usage: %p [-<opt>] <filename>",
-        advgetopt::getopt::argument_mode_t::help_argument
-    },
-    {
-        '\0',
-        advgetopt::getopt::GETOPT_FLAG_SHOW_USAGE_ON_ERROR,
-        nullptr,
-        nullptr,
-        "where -<opt> is one or more of:",
-        advgetopt::getopt::argument_mode_t::help_argument
-    },
-    {
-        '\0',
-        advgetopt::getopt::GETOPT_FLAG_ENVIRONMENT_VARIABLE,
+        advgetopt::GETOPT_FLAG_COMMAND_LINE | advgetopt::GETOPT_FLAG_ENVIRONMENT_VARIABLE | advgetopt::GETOPT_FLAG_FLAG,
         "debug",
         nullptr,
         "run %p in debug mode",
-        advgetopt::getopt::argument_mode_t::no_argument
+        nullptr
     },
     {
         'e',
-        advgetopt::getopt::GETOPT_FLAG_SHOW_USAGE_ON_ERROR,
+        advgetopt::GETOPT_FLAG_COMMAND_LINE | advgetopt::GETOPT_FLAG_REQUIRED | advgetopt::GETOPT_FLAG_SHOW_USAGE_ON_ERROR,
         "execute",
         nullptr,
         "define a command to execute, see manual for details about syntax;"
@@ -83,49 +84,63 @@ advgetopt::getopt::option const g_options[] =
             " ( '.' field ( '[' <keyword> | '\"' <string> '\"' ']' )* )*"       // any number of fields with indexes
             " ( ( '?' | '+' )? '='"                                             // assignment operator (if not GET)
                 " ( 'null' | (<keyword> | '\"' <string> '\"' )+ ) )?",          // value to assign or null (for REMOVE)
-        advgetopt::getopt::argument_mode_t::required_argument
-    },
-    {
-        'h',
-        advgetopt::getopt::GETOPT_FLAG_SHOW_USAGE_ON_ERROR,
-        "help",
-        nullptr,
-        "show %p help screen",
-        advgetopt::getopt::argument_mode_t::no_argument
+        nullptr
     },
     {
         '\0',
-        0,
+        advgetopt::GETOPT_FLAG_COMMAND_LINE | advgetopt::GETOPT_FLAG_FLAG,
         "stdout",
         nullptr,
         "print result in stdout instead of overwriting the input file",
-        advgetopt::getopt::argument_mode_t::no_argument
+        nullptr
     },
     {
         '\0',
-        advgetopt::getopt::GETOPT_FLAG_SHOW_USAGE_ON_ERROR,
-        "version",
-        nullptr,
-        "show the version of %p and exit",
-        advgetopt::getopt::argument_mode_t::no_argument
-    },
-    {
-        '\0',
-        0,
-        nullptr,
+        advgetopt::GETOPT_FLAG_COMMAND_LINE | advgetopt::GETOPT_FLAG_DEFAULT_OPTION,
+        "--",
         nullptr,
         "<named configuration file>",
-        advgetopt::getopt::argument_mode_t::default_argument
+        nullptr
     },
     {
         '\0',
-        0,
+        advgetopt::GETOPT_FLAG_END,
         nullptr,
         nullptr,
         nullptr,
-        advgetopt::getopt::argument_mode_t::end_of_options
+        nullptr
     }
 };
+
+
+
+// until we have C++20 remove warnings this way
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpedantic"
+advgetopt::options_environment const g_options_environment =
+{
+    .f_project_name = "snapwebsites",
+    .f_options = g_options,
+    .f_options_files_directory = nullptr,
+    .f_environment_variable_name = nullptr,
+    .f_configuration_files = nullptr,
+    .f_configuration_filename = nullptr,
+    .f_configuration_directories = nullptr,
+    .f_environment_flags = advgetopt::GETOPT_ENVIRONMENT_FLAG_PROCESS_SYSTEM_PARAMETERS,
+    .f_help_header = "Usage: %p [-<opt>] ...\n"
+                     "where -<opt> is one or more of:",
+    .f_help_footer = "%c",
+    .f_version = SNAPMANAGER_VERSION_STRING,
+//    .f_version = SNAPWEBSITES_VERSION_STRING,
+    .f_license = "GNU GPL v2",
+    .f_copyright = "Copyright (c) 2013-"
+                   BOOST_PP_STRINGIZE(UTC_BUILD_YEAR)
+                   " by Made to Order Software Corporation -- All Rights Reserved",
+    //.f_build_date = UTC_BUILD_DATE,
+    //.f_build_time = UTC_BUILD_TIME
+};
+#pragma GCC diagnostic pop
+
 
 
 /** \brief Edit various DNS options.
@@ -547,7 +562,7 @@ dns_options::keyword::pointer_t dns_options::keyword::get_parent() const
  * \param[in] argv  The array of arguments found on the command line.
  */
 dns_options::dns_options(int argc, char * argv[])
-    : f_opt(argc, argv, g_options, g_configuration_files, nullptr)
+    : f_opt(g_options_environment, argc, argv)
 {
 }
 
@@ -557,24 +572,6 @@ dns_options::dns_options(int argc, char * argv[])
  */
 int dns_options::run()
 {
-    // on --version show the libsnapwebsites library version
-    // (we do not have our own specific version at this point)
-    //
-    if(f_opt.is_defined("version"))
-    {
-        std::cout << SNAPWEBSITES_VERSION_STRING << std::endl;
-        return 0;
-    }
-
-    // on --help print usage
-    //
-    if(f_opt.is_defined("help"))
-    {
-        f_opt.usage(advgetopt::getopt::status_t::no_error, "Usage: dns_options [--<opts>]");
-        snap::NOTREACHED();
-        return 1;
-    }
-
     // check the --debug
     //
     f_debug = f_opt.is_defined("debug");
@@ -689,7 +686,7 @@ int dns_options::load_file()
  * This function saves the f_data buffer back to file. It is expected that
  * the f_data was modified before re-saving.
  *
- * \important
+ * \attention
  * This tool is not responsible to create backups. You may want to write
  * a script that does that first:
  *
@@ -2471,6 +2468,10 @@ int main(int argc, char * argv[])
     {
         dns_options o(argc, argv);
         r = o.run();
+    }
+    catch( advgetopt::getopt_exit const & except )
+    {
+        return except.code();
     }
     catch(std::exception const & e)
     {

@@ -1,5 +1,5 @@
 // Snap Communicator -- classes to ease handling communication between processes
-// Copyright (C) 2012-2018  Made to Order Software Corp.
+// Copyright (c) 2012-2019  Made to Order Software Corp.  All Rights Reserved
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -16,8 +16,13 @@
 // Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #pragma once
 
+
+// snapwebsites lib
+//
 #include "snapwebsites/snap_communicator.h"
 #include "snapwebsites/log.h" // should be in the snap_communicator.h but can't at the moment
+
+
 
 namespace snap
 {
@@ -126,7 +131,7 @@ public:
          * Whenever you define dispatcher_match objects, you want to
          * use the C++11 syntax to create a vector.
          *
-         * \important
+         * \attention
          * We are NOT using a match because the matching may make use
          * of complex functions that support things such as complex as
          * regular expressions. In other words, the name of the message

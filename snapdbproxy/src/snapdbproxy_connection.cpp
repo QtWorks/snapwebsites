@@ -8,10 +8,10 @@
  *      gets closed by the client, the thread terminates.
  *
  *      TODO: we certainly want to look into reusing threads in a pool
- *            instead of having a onetime run like we have now.
+ *            instead of having a one-time run like we have now.
  *
  * License:
- *      Copyright (c) 2016-2018  Made to Order Software Corp.  All Rights Reserved
+ *      Copyright (c) 2016-2019  Made to Order Software Corp.  All Rights Reserved
  *
  *      https://snapwebsites.org/
  *      contact@m2osw.com
@@ -36,26 +36,39 @@
  *      SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-// ourselves
+
+// self
 //
 #include "snapdbproxy.h"
 
-// our lib
+
+// snapwebsites lib
 //
 #include <snapwebsites/log.h>
-#include <snapwebsites/not_used.h>
 #include <snapwebsites/qstring_stream.h>
 #include <snapwebsites/dbutils.h>
+
+
+// snapdev lib
+//
+#include <snapdev/not_used.h>
+
 
 // advgetopt lib
 //
 #include <advgetopt/advgetopt.h>
 
+
 // libdbproxy lib
 //
 #include <libdbproxy/libdbproxy.h>
+
+
+// casswrapper lib
+//
 #include <casswrapper/schema.h>
 #include <casswrapper/session.h>
+
 
 // C++ lib
 //
@@ -63,11 +76,19 @@
 #include <iostream>
 #include <sstream>
 
+
 // C lib
 //
 #include <poll.h>
 #include <sys/ioctl.h>
 #include <sys/syscall.h>
+
+
+// last include
+//
+#include <snapdev/poison.h>
+
+
 
 
 // a mutex to manage data common to all connections
@@ -233,11 +254,15 @@ SNAP_LOG_TRACE("got an order: ")
                 //
                 if(order.validOrder())
                 {
-                    SNAP_LOG_TRACE("snapdbproxy connection socket is gone (")(f_client != nullptr ? f_client->get_socket() : -1)(").");
+                    SNAP_LOG_TRACE("snapdbproxy connection socket is gone (")
+                                  (f_client != nullptr ? f_client->get_socket() : -1)
+                                  (").");
                 }
                 else
                 {
-                    SNAP_LOG_TRACE("snapdbproxy received an invalid order (")(f_client != nullptr ? f_client->get_socket() : -1)(").");
+                    SNAP_LOG_TRACE("snapdbproxy received an invalid order (")
+                                  (f_client != nullptr ? f_client->get_socket() : -1)
+                                  (").");
                 }
 
                 close();
@@ -914,6 +939,7 @@ void snapdbproxy_connection::execute_command(libdbproxy::order const & order)
     send_order(q, order);
 
     // success
+    //
     libdbproxy::order_result result;
     result.setSucceeded(true);
     if(!f_proxy.sendResult(*this, result))

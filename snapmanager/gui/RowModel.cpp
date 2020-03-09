@@ -1,5 +1,5 @@
 //===============================================================================
-// Copyright (c) 2011-2018  Made to Order Software Corp.  All Rights Reserved
+// Copyright (c) 2011-2019  Made to Order Software Corp.  All Rights Reserved
 // 
 // All Rights Reserved.
 // 
@@ -16,15 +16,34 @@
 // COMPLETENESS OR PERFORMANCE.
 //===============================================================================
 
+
+// self
+//
 #include "RowModel.h"
 
+
+// snapwebsites
+//
 #include <snapwebsites/dbutils.h>
-#include <snapwebsites/not_used.h>
 #include <snapwebsites/qstring_stream.h>
 
+
+// snapdev lib
+//
+#include <snapdev/not_used.h>
+
+
+// Qt lib
+//
 #include <QtCore>
 
-#include <snapwebsites/poison.h>
+
+// last include
+//
+#include <snapdev/poison.h>
+
+
+
 
 using namespace casswrapper;
 

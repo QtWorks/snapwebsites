@@ -9,7 +9,7 @@
 #      See the CMake documentation.
 #
 # License:
-#      Copyright (c) 2011-2018  Made to Order Software Corp.  All Rights Reserved
+#      Copyright (c) 2011-2019  Made to Order Software Corp.  All Rights Reserved
 #
 #      https://snapwebsites.org/
 #      contact@m2osw.com
@@ -121,6 +121,13 @@ add_subdirectory(src)           # The snapwebsites libraries
 add_subdirectory(doc)           # API Documentation
 add_subdirectory(tools)         # Various tools built with the libraries
 add_subdirectory(tests)         # Unit tests
+
+##
+## Analyse css, xml and javascript
+##
+#snap_build_css_targets()
+#snap_build_js_targets()
+snap_build_xml_targets()
 
 ##
 ## Code Analysis

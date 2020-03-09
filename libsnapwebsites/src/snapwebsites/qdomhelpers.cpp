@@ -1,5 +1,5 @@
 // Snap Websites Server -- DOM helper functions
-// Copyright (c) 2011-2018  Made to Order Software Corp.  All Rights Reserved
+// Copyright (c) 2011-2019  Made to Order Software Corp.  All Rights Reserved
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -15,16 +15,35 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
+
+// self
+//
 #include "snapwebsites/qdomhelpers.h"
 
+
+// snapwebsites
+//
 #include "snapwebsites/qstring_stream.h"
 #include "snapwebsites/snap_string_list.h"
 
-#include <iostream>
 
+// Qt lib
+//
 #include <QTextStream>
 
-#include "snapwebsites/poison.h"
+
+// C++ lib
+//
+#include <iostream>
+
+
+// last include
+//
+#include <snapdev/poison.h>
+
+
+
+
 
 
 namespace snap
@@ -403,7 +422,7 @@ QDomElement get_element(QDomDocument & doc, QString const & name, bool must_exis
  * multiple tags with the same name at any level, only the first one is
  * used.
  *
- * \important
+ * \attention
  * Again, the function gets the FIRST of each tag it finds. If you want
  * to get all the children, use the QDomXPath instead.
  *
@@ -464,7 +483,7 @@ QDomElement get_child_element(QDomNode parent, QString const& path)
  * have to add many tags at different locations and you do not know whether
  * there is already a tag there.
  *
- * \important
+ * \attention
  * The function gets the FIRST of each tag it finds. So if you want to
  * create a child named \<foo\> and there are 3 tags named that way
  * under \p parent, then the first one will be used.

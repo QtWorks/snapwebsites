@@ -1,5 +1,5 @@
 // Snap Websites Server -- manage the snapmanager.cgi and snapmanagerdaemon
-// Copyright (c) 2016-2018  Made to Order Software Corp.  All Rights Reserved
+// Copyright (c) 2016-2019  Made to Order Software Corp.  All Rights Reserved
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -15,43 +15,55 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
+
 // self
 //
 #include "self.h"
 
-// our lib
+
+// snapmanager lib
 //
 #include "snapmanager/form.h"
+
 
 // snapwebsites lib
 //
 #include <snapwebsites/file_content.h>
-#include <snapwebsites/join_strings.h>
 #include <snapwebsites/log.h>
-#include <snapwebsites/not_reached.h>
-#include <snapwebsites/not_used.h>
 #include <snapwebsites/process.h>
 #include <snapwebsites/qdomhelpers.h>
-#include <snapwebsites/string_pathinfo.h>
-#include <snapwebsites/tokenize_string.h>
 
-// addr lib
+
+// snapdev lib
+//
+#include <snapdev/join_strings.h>
+#include <snapdev/not_reached.h>
+#include <snapdev/not_used.h>
+#include <snapdev/string_pathinfo.h>
+#include <snapdev/tokenize_string.h>
+
+
+// libaddr lib
 //
 #include <libaddr/addr_parser.h>
 #include <libaddr/iface.h>
 
+
 // Qt lib
 //
 #include <QFile>
+
 
 // C lib
 //
 #include <sys/file.h>
 #include <sys/sysinfo.h>
 
-// last entry
+
+// last include
 //
-#include <snapwebsites/poison.h>
+#include <snapdev/poison.h>
+
 
 
 SNAP_PLUGIN_START(self, 1, 0)
@@ -62,6 +74,7 @@ namespace
 
 
 char const * g_configuration_filename = "snapmanager";
+char const * g_configuration_communicator_filename = "snapcommunicator";
 
 
 void file_descriptor_deleter(int * fd)
@@ -639,6 +652,9 @@ bool self::apply_setting(QString const & button_name
     //
     if(button_name == "refresh")
     {
+        snap_config snap_communicator_conf(g_configuration_communicator_filename);
+        QString const signal_secret(snap_communicator_conf["signal_secret"]);
+
         {
             // setup the message to send to other snapmanagerdaemons
             //
@@ -651,7 +667,8 @@ bool self::apply_setting(QString const & button_name
             //
             snap::snap_communicator::snap_udp_server_message_connection::send_message(f_snap->get_signal_address()
                                                                                     , f_snap->get_signal_port()
-                                                                                    , resend);
+                                                                                    , resend
+                                                                                    , signal_secret.toUtf8().data());
         }
         {
             snap::snap_communicator_message cgistatus;
@@ -662,7 +679,8 @@ bool self::apply_setting(QString const & button_name
             //
             snap::snap_communicator::snap_udp_server_message_connection::send_message(f_snap->get_signal_address()
                                                                                     , f_snap->get_signal_port()
-                                                                                    , cgistatus);
+                                                                                    , cgistatus
+                                                                                    , signal_secret.toUtf8().data());
         }
         {
             snap::snap_communicator_message backendstatus;
@@ -673,7 +691,8 @@ bool self::apply_setting(QString const & button_name
             //
             snap::snap_communicator::snap_udp_server_message_connection::send_message(f_snap->get_signal_address()
                                                                                     , f_snap->get_signal_port()
-                                                                                    , backendstatus);
+                                                                                    , backendstatus
+                                                                                    , signal_secret.toUtf8().data());
         }
 
         // messages sent...

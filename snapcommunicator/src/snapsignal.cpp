@@ -1,5 +1,5 @@
 // Snap Websites Server -- to send UDP signals to backends
-// Copyright (c) 2011-2018  Made to Order Software Corp.  All Rights Reserved
+// Copyright (c) 2011-2019  Made to Order Software Corp.  All Rights Reserved
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -15,9 +15,23 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
+
+// snapwebsites lib
+//
 #include <snapwebsites/snapwebsites.h>
 #include <snapwebsites/snap_config.h>
-#include <snapwebsites/not_reached.h>
+
+
+// snapdev lib
+//
+#include <snapdev/not_reached.h>
+
+
+// last include
+//
+#include <snapdev/poison.h>
+
+
 
 
 int main(int argc, char *argv[])
@@ -33,11 +47,21 @@ int main(int argc, char *argv[])
 
         // Now create the qt application instance
         //
-        s->prepare_qtapp( argc, argv );
+        s->prepare_qtapp(argc, argv);
 
         // get the message (Excuse the naming convension...)
         //
         QString const msg(s->get_parameter("__BACKEND_URI"));
+
+        // a UDP message can include a secret code, by default it is going
+        // to use the one defined in /etc/snapwebsites/snapcommunicator.conf
+        //
+        std::string secret_code(s->get_parameter("SECRETCODE").toUtf8().data());      // -p SECRETCODE=123
+        if(secret_code.empty())
+        {
+            snap::snap_config const config("snapcommunicator");
+            secret_code = config.get_parameter("signal_secret");
+        }
 
         // the message is expected to be a complete message as defined in
         // our snap_communicator system, something like:
@@ -56,7 +80,11 @@ int main(int argc, char *argv[])
 
         // now send the message
         //
-        snap::snap_communicator::snap_udp_server_message_connection::send_message(addr.toUtf8().data(), port, message);
+        snap::snap_communicator::snap_udp_server_message_connection::send_message(
+                      addr.toUtf8().data()
+                    , port
+                    , message
+                    , secret_code);
 
         // exit via the server so the server can clean itself up properly
         s->exit(0);

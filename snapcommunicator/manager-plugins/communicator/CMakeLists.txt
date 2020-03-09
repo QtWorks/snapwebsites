@@ -10,7 +10,7 @@
 #      See the CMake documentation.
 #
 # License:
-#      Copyright (c) 2016-2018  Made to Order Software Corp.  All Rights Reserved
+#      Copyright (c) 2016-2019  Made to Order Software Corp.  All Rights Reserved
 #
 #      https://snapwebsites.org/
 #      contact@m2osw.com
@@ -37,7 +37,7 @@ find_package( Qt5Xml  REQUIRED )
 
 include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}
-    ${snapwebsites_top_dir_SOURCE_DIR}
+    #${snapwebsites_top_dir_SOURCE_DIR}
 )
 
 qt5_add_resources(SNAP_MANAGER_RESOURCES_RCC

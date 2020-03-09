@@ -6,7 +6,7 @@
  *      This contains the main() function.
  *
  * License:
- *      Copyright (c) 2016-2018  Made to Order Software Corp.  All Rights Reserved
+ *      Copyright (c) 2016-2019  Made to Order Software Corp.  All Rights Reserved
  *
  *      https://snapwebsites.org/
  *      contact@m2osw.com
@@ -31,12 +31,18 @@
  *      SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+// self
+//
 #include "snaplog.h"
 #include "version.h"
 
 // snapwebsites lib
 //
 #include <snapwebsites/log.h>
+
+// advgetopt lib
+//
+#include <advgetopt/exception.h>
 
 
 /** \brief Define whether the standard output stream is a TTY.
@@ -71,6 +77,10 @@ int main(int argc, char * argv[])
         // connection with the Snap! Communicator service.)
         //
         return 0;
+    }
+    catch( advgetopt::getopt_exit const & except )
+    {
+        return except.code();
     }
     catch( snap::snap_exception const & e )
     {

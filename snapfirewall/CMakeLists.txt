@@ -11,7 +11,7 @@
 #      See the CMake documentation.
 #
 # License:
-#      Copyright (c) 2011-2018  Made to Order Software Corp.  All Rights Reserved
+#      Copyright (c) 2011-2019  Made to Order Software Corp.  All Rights Reserved
 #
 #      https://snapwebsites.org/
 #      contact@m2osw.com
@@ -36,10 +36,6 @@ cmake_minimum_required(VERSION 3.5)
 ## The Snap! Passthrough CGI script
 ##
 project(snapfirewall_project)
-
-if( "${CMAKE_BUILD_TYPE}" STREQUAL "Debug" )
-    add_definitions( "-DMO_DEBUG" )
-endif()
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 

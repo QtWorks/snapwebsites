@@ -1,5 +1,5 @@
 // Snap Websites Server -- users logged info handling
-// Copyright (c) 2012-2018  Made to Order Software Corp.  All Rights Reserved
+// Copyright (c) 2012-2019  Made to Order Software Corp.  All Rights Reserved
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -22,9 +22,17 @@
  * to let other plugins know the status of the user.
  */
 
+
+// self
+//
 #include "users.h"
 
-#include <snapwebsites/poison.h>
+
+// last include
+//
+#include <snapdev/poison.h>
+
+
 
 
 SNAP_PLUGIN_EXTENSION_START(users)

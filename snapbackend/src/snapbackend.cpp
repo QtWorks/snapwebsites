@@ -1,5 +1,5 @@
 // Snap Websites Server -- snap websites backend tool
-// Copyright (c) 2011-2018  Made to Order Software Corp.  All Rights Reserved
+// Copyright (c) 2011-2019  Made to Order Software Corp.  All Rights Reserved
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -15,25 +15,45 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
+
+// snapwebsites lib
+//
 #include <snapwebsites/snapwebsites.h>
 #include <snapwebsites/snap_exception.h>
 #include <snapwebsites/log.h>
-#include <snapwebsites/not_reached.h>
 
 
-int main(int argc, char * argv[])
+// snapdev lib
+//
+#include <snapdev/not_reached.h>
+
+
+// last include
+//
+#include <snapdev/poison.h>
+
+
+
+int main( int argc, char * argv[] )
 {
     int exitval(1);
     try
     {
         // create a server object
         //
-        snap::server::pointer_t s( snap::server::instance() );
+        snap::server::pointer_t s(snap::server::instance());
         s->setup_as_backend();
 
         // parse the command line arguments (this also brings in the .conf params)
         //
-        s->config( argc, argv );
+        s->config(argc, argv);
+
+        QString action(s->get_parameter("action"));
+        if(!action.isEmpty())
+        {
+            action.replace('_', ':');
+            s->set_service_name(action.toUtf8().data());
+        }
 
         // if possible, detach the server
         //

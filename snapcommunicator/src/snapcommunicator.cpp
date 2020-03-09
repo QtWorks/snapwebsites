@@ -1,5 +1,5 @@
 // Snap Websites Server -- server to handle inter-process communication
-// Copyright (c) 2011-2018  Made to Order Software Corp.  All Rights Reserved
+// Copyright (c) 2011-2019  Made to Order Software Corp.  All Rights Reserved
 //
 // https://snapwebsites.org/
 // contact@m2osw.com
@@ -18,7 +18,8 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
-// ourselves
+
+// self
 //
 #include "version.h"
 
@@ -29,20 +30,27 @@
 #include <snapwebsites/glob_dir.h>
 #include <snapwebsites/loadavg.h>
 #include <snapwebsites/log.h>
-#include <snapwebsites/not_used.h>
 #include <snapwebsites/snap_communicator.h>
 #include <snapwebsites/snapwebsites.h>
-#include <snapwebsites/tokenize_string.h>
 
-// addr lib
+
+// snapdev lib
 //
-#include <libaddr/addr_exceptions.h>
+#include <snapdev/not_used.h>
+#include <snapdev/tokenize_string.h>
+
+
+// libaddr lib
+//
+#include <libaddr/addr_exception.h>
 #include <libaddr/addr_parser.h>
 #include <libaddr/iface.h>
+
 
 // Qt lib
 //
 #include <QFile>
+
 
 // C++ lib
 //
@@ -53,6 +61,7 @@
 #include <sstream>
 #include <thread>
 
+
 // C lib
 //
 #include <grp.h>
@@ -62,7 +71,8 @@
 
 // included last
 //
-#include <snapwebsites/poison.h>
+#include <snapdev/poison.h>
+
 
 
 
@@ -136,6 +146,9 @@ namespace
 
 
 typedef QMap<QString, bool>                 sorted_list_of_strings_t;
+
+
+char const *        g_status_filename = "/var/lib/snapwebsites/cluster-status.txt";
 
 
 /** \brief The sequence number of a message being broadcast.
@@ -369,7 +382,9 @@ public:
     void                        run();
 
     // one place where all messages get processed
-    void                        process_message(snap::snap_communicator::snap_connection::pointer_t connection, snap::snap_communicator_message const & message, bool udp);
+    void                        process_message(snap::snap_communicator::snap_connection::pointer_t connection
+                                              , snap::snap_communicator_message const & message
+                                              , bool udp);
 
     void                        send_status(snap::snap_communicator::snap_connection::pointer_t connection, snap::snap_communicator::snap_connection::pointer_t * reply_connection = nullptr);
     QString                     get_local_services() const;
@@ -1947,6 +1962,8 @@ class ping_impl
     : public snap::snap_communicator::snap_udp_server_message_connection
 {
 public:
+    typedef std::shared_ptr<ping_impl>  pointer_t;
+
     /** \brief The messenger initialization.
      *
      * The messenger receives UDP messages from various sources (mainly
@@ -2084,74 +2101,6 @@ void snap_communicator_server::init()
             path_to_services = "/usr/share/snapwebsites/services";
         }
         path_to_services += "/*.service";
-#if 0
-        QByteArray pattern(path_to_services.toUtf8());
-        glob_t dir = glob_t();
-        int const r(glob(
-                      pattern.data()
-                    , GLOB_NOESCAPE
-                    , glob_error_callback
-                    , &dir));
-        std::shared_ptr<glob_t> ai(&dir, glob_deleter);
-
-        if(r != 0)
-        {
-            // do nothing when errors occur
-            //
-            switch(r)
-            {
-            case GLOB_NOSPACE:
-                SNAP_LOG_FATAL("glob() did not have enough memory to alllocate its buffers.");
-                throw snap::snap_exception("glob() did not have enough memory to alllocate its buffers.");
-
-            case GLOB_ABORTED:
-                SNAP_LOG_FATAL("glob() was aborted after a read error.");
-                throw snap::snap_exception("glob() was aborted after a read error.");
-
-            case GLOB_NOMATCH:
-                // this is a legal case, absolutely no local services...
-                //
-                SNAP_LOG_DEBUG("glob() could not find any status information.");
-                break;
-
-            default:
-                SNAP_LOG_FATAL(QString("unknown glob() error code: %1.").arg(r));
-                throw snap::snap_exception(QString("unknown glob() error code: %1.").arg(r));
-
-            }
-        }
-        else
-        {
-            // we have some local services (note that snapcommunicator is
-            // not added as a local service)
-            //
-            for(size_t idx(0); idx < dir.gl_pathc; ++idx)
-            {
-                char const * basename(strrchr(dir.gl_pathv[idx], '/'));
-                if(basename == nullptr)
-                {
-                    basename = dir.gl_pathv[idx];
-                }
-                else
-                {
-                    ++basename;
-                }
-                char const * end(strstr(basename, ".service"));
-                if(end == nullptr)
-                {
-                    end = basename + strlen(basename);
-                }
-                QString const key(QString::fromUtf8(basename, end - basename));
-                f_local_services_list[key] = true;
-            }
-
-            // the list of local services cannot (currently) change while
-            // snapcommunicator is running so generate the corresponding
-            // string once
-            //
-            f_local_services = f_local_services_list.keys().join(",");
-        }
-#else
         try
         {
             snap::glob_dir dir( path_to_services, GLOB_NOESCAPE );
@@ -2211,7 +2160,6 @@ void snap_communicator_server::init()
             SNAP_LOG_FATAL("Unknown exception caught!");
             throw snap::snap_exception("Unknown exception caught!");
         }
-#endif
     }
 
     f_communicator = snap::snap_communicator::instance();
@@ -2302,8 +2250,10 @@ void snap_communicator_server::init()
         int port(4041);
         tcp_client_server::get_addr_port(f_server->get_parameter("signal"), addr, port, "tcp");
 
-        f_ping.reset(new ping_impl(shared_from_this(), addr.toUtf8().data(), port));
-        f_ping->set_name("snap communicator messenger (UDP)");
+        ping_impl::pointer_t ping(new ping_impl(shared_from_this(), addr.toUtf8().data(), port));
+        ping->set_secret_code(f_server->get_parameter("signal_secret").toUtf8().data());
+        ping->set_name("snap communicator messenger (UDP)");
+        f_ping = ping;
         f_communicator->add_connection(f_ping);
     }
 
@@ -2367,6 +2317,12 @@ void snap_communicator_server::init()
     }
     f_explicit_neighbors = canonicalize_neighbors(f_server->get_parameter("neighbors"));
     add_neighbors(f_explicit_neighbors);
+
+    // if we are in a one computer environment this call would never happens
+    // unless someone sends us a CLUSTERSTATUS, but that does not have the
+    // exact same effect
+    //
+    cluster_status(nullptr);
 }
 
 
@@ -2594,8 +2550,10 @@ void snap_communicator_server::process_message(snap::snap_communicator::snap_con
      && command != "SNAPLOG"))
     {
         SNAP_LOG_TRACE("received command=[")(command)
-                ("], server_name=[")(server_name)("], service=[")(service)
-                ("], message=[")(message.to_message())("]");
+                ("], server_name=[")(server_name)
+                ("], service=[")(service)
+                ("], message=[")(message.to_message())
+                ("]");
     }
 
     base_connection::pointer_t base(std::dynamic_pointer_cast<base_connection>(connection));
@@ -4058,6 +4016,7 @@ SNAP_LOG_ERROR("GOSSIP is not yet fully implemented.");
                         SNAP_LOG_ERROR("invalid TTL in message [")(message.to_message())("]");
 
                         // revert to default
+                        //
                         ttl = 60;
                     }
                 }
@@ -4068,6 +4027,17 @@ SNAP_LOG_ERROR("GOSSIP is not yet fully implemented.");
                 cache_message.f_timeout_timestamp = time(nullptr) + ttl;
                 cache_message.f_message = message;
                 f_local_message_cache.push_back(cache_message);
+
+#ifdef _DEBUG
+                // to make sure we get messages cached as expected
+                //
+                SNAP_LOG_TRACE("cached command=[")(command)
+                        ("], server_name=[")(server_name)
+                        ("], service=[")(service)
+                        ("], message=[")(message.to_message())
+                        ("], ttl=[")(ttl)
+                        ("]");
+#endif
             }
             transmission_report();
             return;
@@ -4563,6 +4533,7 @@ void snap_communicator_server::cluster_status(snap::snap_communicator::snap_conn
     //
     size_t const total_count(f_all_neighbors.size());
     size_t const quorum(total_count / 2 + 1);
+    bool modified = false;
 
     QString const new_status(count >= quorum ? "CLUSTERUP" : "CLUSTERDOWN");
     if(new_status != f_cluster_status
@@ -4572,6 +4543,7 @@ void snap_communicator_server::cluster_status(snap::snap_communicator::snap_conn
         if(reply_connection == nullptr)
         {
             f_cluster_status = new_status;
+            modified = true;
         }
 
         // send the results to either the requesting connection or broadcast
@@ -4605,6 +4577,7 @@ void snap_communicator_server::cluster_status(snap::snap_communicator::snap_conn
         if(reply_connection == nullptr)
         {
             f_cluster_complete = new_complete;
+            modified = true;
         }
 
         // send the results to either the requesting connection or broadcast
@@ -4613,7 +4586,7 @@ void snap_communicator_server::cluster_status(snap::snap_communicator::snap_conn
         snap::snap_communicator_message cluster_complete_msg;
         cluster_complete_msg.set_command(new_complete);
         cluster_complete_msg.set_service(".");
-        cluster_complete_msg.add_parameter("neighbors_count", QString("%1").arg(total_count));
+        cluster_complete_msg.add_parameter("neighbors_count", total_count);
         if(reply_connection != nullptr)
         {
             // reply to a direct CLUSTERSTATUS
@@ -4633,6 +4606,17 @@ void snap_communicator_server::cluster_status(snap::snap_communicator::snap_conn
     if(reply_connection == nullptr)
     {
         f_total_count_sent = total_count;
+    }
+
+    if(modified)
+    {
+        std::ofstream status_file;
+        status_file.open(g_status_filename);
+        if(status_file.is_open())
+        {
+            status_file << f_cluster_status << std::endl
+                        << f_cluster_complete << std::endl;
+        }
     }
 
     SNAP_LOG_INFO("cluster status is \"")
@@ -5292,6 +5276,7 @@ void snap_communicator_server::process_connected(snap::snap_communicator::snap_c
 {
     snap::snap_communicator_message connect;
     connect.set_command("CONNECT");
+    //connect.add_version_parameter("version", snap::snap_communicator::VERSION);
     connect.add_parameter("version", snap::snap_communicator::VERSION);
     connect.add_parameter("my_address", QString::fromUtf8(f_my_address.to_ipv4or6_string(addr::addr::string_ip_t::STRING_IP_PORT).c_str()));
     connect.add_parameter("server_name", f_server_name);
@@ -5359,10 +5344,10 @@ remote_snap_communicator::~remote_snap_communicator()
     {
         SNAP_LOG_DEBUG("deleting remote_snap_communicator connection: ")(f_address.to_ipv4or6_string(addr::addr::string_ip_t::STRING_IP_PORT));
     }
-    catch(addr::addr_invalid_parameter_exception const &)
+    catch(addr::addr_invalid_parameter const &)
     {
     }
-    catch(addr::addr_invalid_argument_exception const &)
+    catch(addr::addr_invalid_argument const &)
     {
     }
 }
@@ -5571,6 +5556,7 @@ int main(int argc, char * argv[])
         {
             snap_communicator_server::pointer_t communicator( new snap_communicator_server( s ) );
             communicator->init();
+            s->server_loop_ready();
             communicator->run();
         }
 

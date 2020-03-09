@@ -11,7 +11,7 @@
  *      easy practical way which this tool offers.
  *
  * License:
- *      Copyright (c) 2012-2018  Made to Order Software Corp.  All Rights Reserved
+ *      Copyright (c) 2012-2019  Made to Order Software Corp.  All Rights Reserved
  *
  *      https://snapwebsites.org/
  *      contact@m2osw.com
@@ -89,9 +89,6 @@ void snapbackup::setSqliteDbFile( QString const & sqlDbFile )
 
 void snapbackup::connectToCassandra()
 {
-    f_session->setLowWaterMark  ( f_opt->get_long("low-watermark")  );
-    f_session->setHighWaterMark ( f_opt->get_long("high-watermark") );
-
     f_session->connect
             ( f_opt->get_string("host").c_str()
             , f_opt->get_long("port")
@@ -406,7 +403,8 @@ void snapbackup::storeTables( const int count, const QString& context_name )
     QStringList tables_to_dump;
     if( f_opt->is_defined("tables") )
     {
-        for( int idx = 0; idx < f_opt->size("tables"); ++idx )
+        size_t const max(f_opt->size("tables"));
+        for( size_t idx = 0; idx < max; ++idx )
         {
             tables_to_dump << QString(f_opt->get_string( "tables", idx ).c_str());
         }
@@ -504,7 +502,8 @@ void snapbackup::restoreTables( QString const & context_name )
     QStringList tables_to_restore;
     if( f_opt->is_defined("tables") )
     {
-        for( int idx = 0; idx < f_opt->size("tables"); ++idx )
+        size_t const max(f_opt->size("tables"));
+        for( size_t idx = 0; idx < max; ++idx )
         {
             tables_to_restore << QString(f_opt->get_string( "tables", idx ).c_str());
         }

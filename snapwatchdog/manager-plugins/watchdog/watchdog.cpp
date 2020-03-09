@@ -1,5 +1,5 @@
 // Snap Websites Server -- manage the snapwatchdog settings
-// Copyright (c) 2016-2018  Made to Order Software Corp.  All Rights Reserved
+// Copyright (c) 2016-2019  Made to Order Software Corp.  All Rights Reserved
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -15,42 +15,54 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
-// watchdog
+
+// self
 //
 #include "watchdog.h"
 
-// our lib
+
+// snapmanager lib
 //
 #include <snapmanager/form.h>
 #include <snapmanager/version.h>
 
+
 // it's not under snapmanager from within snapwatchdog
 #include <snapmanagercgi.h>
+
 
 // snapwebsites lib
 //
 #include <snapwebsites/email.h>
 #include <snapwebsites/glob_dir.h>
-#include <snapwebsites/join_strings.h>
 #include <snapwebsites/log.h>
-#include <snapwebsites/not_reached.h>
-#include <snapwebsites/not_used.h>
 #include <snapwebsites/qdomhelpers.h>
 #include <snapwebsites/qdomxpath.h>
-#include <snapwebsites/string_pathinfo.h>
-#include <snapwebsites/tokenize_string.h>
+
+
+// snapdev lib
+//
+#include <snapdev/join_strings.h>
+#include <snapdev/not_reached.h>
+#include <snapdev/not_used.h>
+#include <snapdev/string_pathinfo.h>
+#include <snapdev/tokenize_string.h>
+
 
 // Qt lib
 //
 #include <QFile>
 
+
 // C lib
 //
 #include <sys/file.h>
 
-// last entry
+
+// last include
 //
-#include <snapwebsites/poison.h>
+#include <snapdev/poison.h>
+
 
 
 SNAP_PLUGIN_START(watchdog, 1, 0)
@@ -224,7 +236,7 @@ void watchdog::bootstrap(snap_child * snap)
     std::string const type(f_snap->server_type());
     if(type == "manager_cgi")
     {
-        SNAP_LISTEN(watchdog, "server", snap_manager::manager_cgi, generate_content, _1, _2, _3, _4);
+        SNAP_LISTEN(watchdog, "server", snap_manager::manager_cgi, generate_content, _1, _2, _3, _4, _5);
     }
 }
 
@@ -820,7 +832,7 @@ bool watchdog::apply_setting(QString const & button_name, QString const & field_
             f_snap->replace_configuration_value(
                           g_test_mta_results
                         , "status"
-                        , "The from_email must bost be defined to test the MTA from the watchdog.");
+                        , "The `from_email` must be defined to test the MTA from the watchdog.");
         }
         else if(new_value.isEmpty())
         {
@@ -969,15 +981,18 @@ void watchdog::get_plugin_names(QString plugin_filename, snap_string_list * avai
  * \param[in] output  The output where we put the data in case we generate it.
  * \param[in] menu  Menu entries.
  */
-void watchdog::on_generate_content(QDomDocument doc, QDomElement output, QDomElement menu, snap::snap_uri const & uri)
+void watchdog::on_generate_content(QDomDocument doc, QDomElement root, QDomElement output, QDomElement menu, snap::snap_uri const & uri)
 {
     snap::NOTUSED(doc);
+    snap::NOTUSED(root);
     snap::NOTUSED(output);
 
     QString const host(uri.query_option("host"));
 
-    // add an option to the menu so one can access that page from there
+    if(!host.isEmpty())
     {
+        // add an option to the menu so one can access that page from there
+        //
         QDomElement item(doc.createElement("item"));
         item.setAttribute("href"
                         , QString("?host=%1&function=watchdog&position=latest")

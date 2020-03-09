@@ -1,5 +1,5 @@
 // Snap Communicator Dispatcher -- dispatcher extension
-// Copyright (C) 2012-2018  Made to Order Software Corp.
+// Copyright (c) 2012-2019  Made to Order Software Corp.  All Rights Reserved
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -20,9 +20,18 @@
 #define _GNU_SOURCE
 #endif
 
+
+// self
+//
 #include "snapwebsites/snap_communicator.h"
 
-#include "snapwebsites/poison.h"
+
+// last include
+//
+#include <snapdev/poison.h>
+
+
+
 
 
 /** \file

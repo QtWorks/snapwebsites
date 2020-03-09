@@ -1,5 +1,5 @@
 // Snap Websites Server -- manage the snapbackend settings
-// Copyright (c) 2016-2018  Made to Order Software Corp.  All Rights Reserved
+// Copyright (c) 2016-2019  Made to Order Software Corp.  All Rights Reserved
 //
 
 // This program is free software; you can redistribute it and/or modify
@@ -16,38 +16,49 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
+
 // backend
 //
 #include "backend.h"
+
 
 // our lib
 //
 #include "snapmanager/form.h"
 
+
 // snapwebsites lib
 //
-#include <snapwebsites/join_strings.h>
 #include <snapwebsites/log.h>
-#include <snapwebsites/not_reached.h>
-#include <snapwebsites/not_used.h>
 #include <snapwebsites/process.h>
 #include <snapwebsites/qdomhelpers.h>
 #include <snapwebsites/qdomxpath.h>
-#include <snapwebsites/string_pathinfo.h>
-#include <snapwebsites/tokenize_string.h>
+
+
+// snapdev lib
+//
+#include <snapdev/join_strings.h>
+#include <snapdev/not_reached.h>
+#include <snapdev/not_used.h>
+#include <snapdev/string_pathinfo.h>
+#include <snapdev/tokenize_string.h>
+
 
 // Qt lib
 //
 #include <QFile>
 #include <QTextStream>
 
+
 // C lib
 //
 #include <sys/file.h>
 
-// last entry
+
+// last include
 //
-#include <snapwebsites/poison.h>
+#include <snapdev/poison.h>
+
 
 
 SNAP_PLUGIN_START(backend, 1, 0)
@@ -678,7 +689,7 @@ bool backend::display_value(QDomElement parent, snap_manager::status_t const & s
                                  " The value can be followed by 'ms' for milliseconds,"
                                  " 's' for seconds, 'min' for minutes,"
                                  " combos work too: 5min 30s. For more, see"
-                                 " <a href=\"https://www.freedesktop.org/software/systemd/man/systemd.time.html\">sytemd.time</a>")
+                                 " <a href=\"https://www.freedesktop.org/software/systemd/man/systemd.time.html\">systemd.time</a>")
                                         .arg(service_name)
                         ));
         f.add_widget(field);

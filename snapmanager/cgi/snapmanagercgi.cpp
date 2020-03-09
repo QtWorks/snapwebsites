@@ -2,7 +2,7 @@
 // File:        snapmanager/cgi/snapmanagercgi.cpp
 // Object:      Allow for managing a Snap! Cluster.
 //
-// Copyright:   Copyright (c) 2016-2018  Made to Order Software Corp.  All Rights Reserved
+// Copyright:   Copyright (c) 2016-2019  Made to Order Software Corp.  All Rights Reserved
 //              All Rights Reserved.
 //
 // https://snapwebsites.org/
@@ -27,56 +27,70 @@
 // THE SOFTWARE.
 //
 
-// ourselves
+
+// self
 //
 #include "snapmanagercgi.h"
+
 
 // our lib
 //
 #include "snapmanager/plugin_base.h"
 #include "snapmanager/server_status.h"
 
+
 // snapwebsites lib
 //
 #include <snapwebsites/chownnm.h>
 #include <snapwebsites/file_content.h>
 #include <snapwebsites/glob_dir.h>
-#include <snapwebsites/hexadecimal_string.h>
 #include <snapwebsites/mkdir_p.h>
-#include <snapwebsites/not_used.h>
 #include <snapwebsites/qdomhelpers.h>
 #include <snapwebsites/snap_communicator.h>
 #include <snapwebsites/snap_uri.h>
-#include <snapwebsites/tokenize_string.h>
+
+
+// snapdev lib
+//
+#include <snapdev/hexadecimal_string.h>
+#include <snapdev/not_used.h>
+#include <snapdev/tokenize_string.h>
+
 
 // addr lib
 #include <libaddr/addr_parser.h>
 
+
 // Qt lib
 //
 #include <QFile>
+
 
 // boost lib
 //
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/lexical_cast.hpp>
 
+
 // C++ lib
 //
 #include <fstream>
+
 
 // C lib
 //
 #include <fcntl.h>
 #include <sys/file.h>
 
+
 // OpenSLL lib
 //
 #include <openssl/rand.h>
 
-// last entry
+
+// last include
 //
-#include <snapwebsites/poison.h>
+#include <snapdev/poison.h>
 
 
 namespace snap_manager
@@ -774,7 +788,7 @@ int manager_cgi::process()
         //
         load_plugins();
 
-        generate_content(doc, output, menu, f_uri);
+        generate_content(doc, root, output, menu, f_uri);
 
         // handle this warning after the generate_content() signal
         {
@@ -1873,7 +1887,7 @@ SNAP_LOG_TRACE("msg.run() finished");
  * \param[in] output  The output tag.
  * \param[in] menu  The menu tag.
  */
-bool manager_cgi::generate_content_impl(QDomDocument doc, QDomElement output, QDomElement menu, snap::snap_uri const & uri)
+bool manager_cgi::generate_content_impl(QDomDocument doc, QDomElement root, QDomElement output, QDomElement menu, snap::snap_uri const & uri)
 {
     snap::NOTUSED(output);
     snap::NOTUSED(uri);
@@ -1897,12 +1911,20 @@ bool manager_cgi::generate_content_impl(QDomDocument doc, QDomElement output, QD
         QDomElement status(doc.createElement("status"));
         menu.appendChild(status);
         status.appendChild(doc.createTextNode(QString("(Host: %1)").arg(host)));
+
+        QDomElement title(doc.createElement("title"));
+        root.appendChild(title);
+        title.appendChild(doc.createTextNode(QString("Snap! Manager (%1)").arg(host)));
     }
     else
     {
         QDomElement status(doc.createElement("status"));
         menu.appendChild(status);
         status.appendChild(doc.createTextNode("(Select Host)"));
+
+        QDomElement title(doc.createElement("title"));
+        root.appendChild(title);
+        title.appendChild(doc.createTextNode("Snap! Manager"));
     }
 
     return true;
@@ -1910,8 +1932,11 @@ bool manager_cgi::generate_content_impl(QDomDocument doc, QDomElement output, QD
 
 
 
-void manager_cgi::generate_content_done(QDomDocument doc, QDomElement output, QDomElement menu, snap::snap_uri const & uri)
+void manager_cgi::generate_content_done(QDomDocument doc, QDomElement root, QDomElement output, QDomElement menu, snap::snap_uri const & uri)
 {
+    snap::NOTUSED(root);
+    snap::NOTUSED(menu);
+
     // did one of the plugins generate the output?
     // if so then we have nothing to do here
     //
@@ -1940,10 +1965,6 @@ void manager_cgi::generate_content_done(QDomDocument doc, QDomElement output, QD
     }
     else
     {
-        QDomElement status(doc.createElement("status"));
-        menu.appendChild(status);
-        status.appendChild(doc.createTextNode("(Select Host)"));
-
         // no host specified, if there is a function it has to be applied
         // to all computers, otherwise show the list of computers and their
         // basic status

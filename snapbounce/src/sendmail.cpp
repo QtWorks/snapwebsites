@@ -1,7 +1,7 @@
 /////////////////////////////////////////////////////////////////////////////////
 // Snap Mail Email Processor
 
-// Copyright (c) 2018  Made to Order Software Corp.  All Rights Reserved
+// Copyright (c) 2018-2019  Made to Order Software Corp.  All Rights Reserved
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -38,25 +38,34 @@
 
 #include "version.h"
 
+
 // snapwebsites lib
 //
 #include <snapwebsites/chownnm.h>
 #include <snapwebsites/log.h>
 #include <snapwebsites/mkdir_p.h>
-#include <snapwebsites/not_reached.h>
-#include <snapwebsites/not_used.h>
 
-// advget lib
+
+// snapdev lib
+//
+#include <snapdev/not_reached.h>
+#include <snapdev/not_used.h>
+
+
+// advgetopt lib
 //
 #include <advgetopt/advgetopt.h>
+
 
 // boost lib
 //
 #include <boost/algorithm/string/replace.hpp>
 
+
 // C++ lib
 //
 #include <fstream>
+
 
 // C lib
 //
@@ -67,7 +76,7 @@
 
 // included last
 //
-#include <snapwebsites/poison.h>
+#include <snapdev/poison.h>
 
 
 

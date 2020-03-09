@@ -1,5 +1,5 @@
 // Snap Websites Server -- command line tool to determine whether a process exists
-// Copyright (c) 2018  Made to Order Software Corp.  All Rights Reserved
+// Copyright (c) 2018-2019  Made to Order Software Corp.  All Rights Reserved
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -15,108 +15,122 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
-//#include "snapwatchdog.h"
 
 // snapwebsites lib
 //
 #include <snapwebsites/log.h>
-#include <snapwebsites/not_reached.h>
 #include <snapwebsites/process.h>
 #include <snapwebsites/snap_exception.h>
 #include <snapwebsites/version.h>
 
+
+// snapdev lib
+//
+#include <snapdev/not_reached.h>
+
+
 // advgetopt lib
 //
 #include <advgetopt/advgetopt.h>
+#include <advgetopt/exception.h>
+
+
+// boost lib
+//
+#include <boost/preprocessor/stringize.hpp>
+
 
 // C++ lib
 //
 #include <regex>
 
 
-// last entry
+// last include
 //
-#include <snapwebsites/poison.h>
+#include <snapdev/poison.h>
+
+
 
 namespace
 {
-    const std::vector<std::string> g_configuration_files;
 
-    const advgetopt::getopt::option g_command_line_options[] =
+
+advgetopt::option const g_command_line_options[] =
+{
     {
-        {
-            '\0',
-            advgetopt::getopt::GETOPT_FLAG_SHOW_USAGE_ON_ERROR,
-            nullptr,
-            nullptr,
-            "Usage: %p [-<opt>]",
-            advgetopt::getopt::argument_mode_t::help_argument
-        },
-        {
-            '\0',
-            advgetopt::getopt::GETOPT_FLAG_SHOW_USAGE_ON_ERROR,
-            nullptr,
-            nullptr,
-            "where -<opt> is one or more of:",
-            advgetopt::getopt::argument_mode_t::help_argument
-        },
-        {
-            's',
-            0,
-            "script",
-            nullptr,
-            "the process to look for was started as a script of the specified type (i.e. \"sh\", \"java\", \"python\", etc.)",
-            advgetopt::getopt::argument_mode_t::required_argument
-        },
-        {
-            'h',
-            advgetopt::getopt::GETOPT_FLAG_SHOW_USAGE_ON_ERROR,
-            "help",
-            nullptr,
-            "show this help output",
-            advgetopt::getopt::argument_mode_t::no_argument
-        },
-        {
-            '\0',
-            advgetopt::getopt::GETOPT_FLAG_ENVIRONMENT_VARIABLE,
-            "regex",
-            nullptr,
-            "view the --script (if used) and <process name> as regular expressions",
-            advgetopt::getopt::argument_mode_t::no_argument
-        },
-        {
-            'v',
-            advgetopt::getopt::GETOPT_FLAG_ENVIRONMENT_VARIABLE,
-            "verbose",
-            nullptr,
-            "make the output verbose",
-            advgetopt::getopt::argument_mode_t::no_argument
-        },
-        {
-            '\0',
-            advgetopt::getopt::GETOPT_FLAG_SHOW_USAGE_ON_ERROR,
-            "version",
-            nullptr,
-            "show the version of %p and exit",
-            advgetopt::getopt::argument_mode_t::no_argument
-        },
-        {
-            '\0',
-            advgetopt::getopt::GETOPT_FLAG_SHOW_USAGE_ON_ERROR,
-            nullptr,
-            nullptr,
-            "<process name>",
-            advgetopt::getopt::argument_mode_t::default_multiple_argument
-        },
-        {
-            '\0',
-            0,
-            nullptr,
-            nullptr,
-            nullptr,
-            advgetopt::getopt::argument_mode_t::end_of_options
-        }
-    };
+        's',
+        advgetopt::GETOPT_FLAG_COMMAND_LINE | advgetopt::GETOPT_FLAG_REQUIRED,
+        "script",
+        nullptr,
+        "the process to look for was started as a script of the specified type (i.e. \"sh\", \"java\", \"python\", etc.)",
+        nullptr
+    },
+    {
+        '\0',
+        advgetopt::GETOPT_FLAG_COMMAND_LINE | advgetopt::GETOPT_FLAG_ENVIRONMENT_VARIABLE | advgetopt::GETOPT_FLAG_FLAG,
+        "regex",
+        nullptr,
+        "view the --script (if used) and <process name> as regular expressions",
+        nullptr
+    },
+    {
+        'v',
+        advgetopt::GETOPT_FLAG_COMMAND_LINE | advgetopt::GETOPT_FLAG_ENVIRONMENT_VARIABLE | advgetopt::GETOPT_FLAG_FLAG,
+        "verbose",
+        nullptr,
+        "make the output verbose",
+        nullptr
+    },
+    {
+        '\0',
+        advgetopt::GETOPT_FLAG_COMMAND_LINE | advgetopt::GETOPT_FLAG_MULTIPLE | advgetopt::GETOPT_FLAG_DEFAULT_OPTION | advgetopt::GETOPT_FLAG_SHOW_USAGE_ON_ERROR,
+        "--",
+        nullptr,
+        "<process name>",
+        nullptr
+    },
+    {
+        '\0',
+        advgetopt::GETOPT_FLAG_END,
+        nullptr,
+        nullptr,
+        nullptr,
+        nullptr
+    }
+};
+
+
+
+
+
+// until we have C++20 remove warnings this way
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpedantic"
+advgetopt::options_environment const g_command_line_options_environment =
+{
+    .f_project_name = "snapwebsites",
+    .f_options = g_command_line_options,
+    .f_options_files_directory = nullptr,
+    .f_environment_variable_name = nullptr,
+    .f_configuration_files = nullptr,
+    .f_configuration_filename = nullptr,
+    .f_configuration_directories = nullptr,
+    .f_environment_flags = advgetopt::GETOPT_ENVIRONMENT_FLAG_PROCESS_SYSTEM_PARAMETERS,
+    .f_help_header = "Usage: %p [-<opt>] <process-name>\n"
+                     "where -<opt> is one or more of:",
+    .f_help_footer = "%c",
+    .f_version = SNAPWEBSITES_VERSION_STRING,
+    .f_license = "GNU GPL v2",
+    .f_copyright = "Copyright (c) 2013-"
+                   BOOST_PP_STRINGIZE(UTC_BUILD_YEAR)
+                   " by Made to Order Software Corporation -- All Rights Reserved",
+    //.f_build_date = UTC_BUILD_DATE,
+    //.f_build_time = UTC_BUILD_TIME
+};
+#pragma GCC diagnostic pop
+
+
+
 }
 //namespace
 
@@ -130,21 +144,7 @@ int main(int argc, char * argv[])
 
     try
     {
-        advgetopt::getopt opt(argc, argv, g_command_line_options, g_configuration_files, nullptr);
-
-        if(opt.is_defined("version"))
-        {
-            std::cout << SNAPWEBSITES_VERSION_STRING << std::endl;
-            exit(0);
-            snap::NOTREACHED();
-        }
-
-        if(opt.is_defined("help"))
-        {
-            opt.usage(advgetopt::getopt::status_t::no_error, "find_process");
-            exit(1);
-            snap::NOTREACHED();
-        }
+        advgetopt::getopt opt(g_command_line_options_environment, argc, argv);
 
         bool const verbose(opt.is_defined("verbose"));
         bool const regex(opt.is_defined("regex"));
@@ -258,6 +258,10 @@ int main(int argc, char * argv[])
         {
             std::cout << "find_process: failure. Could not find \"" << process_name << "\"." << std::endl;
         }
+    }
+    catch( advgetopt::getopt_exit const & except )
+    {
+        return except.code();
     }
     catch( snap::snap_exception const & except )
     {

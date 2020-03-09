@@ -10,7 +10,7 @@
 #      See the CMake documentation.
 #
 # License:
-#      Copyright (c) 2014-2018  Made to Order Software Corp.  All Rights Reserved
+#      Copyright (c) 2014-2019  Made to Order Software Corp.  All Rights Reserved
 #
 #      https://snapwebsites.org/
 #      contact@m2osw.com
@@ -42,7 +42,8 @@ qt5_add_resources(SNAP_MANAGER_RESOURCES_RCC
     tracker.qrc
 )
 
-snap_validate_xml( content.xml content.dtd )
+snap_validate_xml( content.xml        content.dtd )
+snap_validate_xml( tracker-tables.xml tables.xsd  )
 
 add_library(tracker SHARED
     tracker.cpp

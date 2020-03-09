@@ -1,5 +1,5 @@
 // Snap Communicator -- connection for Qt
-// Copyright (C) 2018  Made to Order Software Corp.
+// Copyright (c) 2018-2019  Made to Order Software Corp.  All Rights Reserved
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -23,9 +23,13 @@
 // snapwebsites lib
 //
 #include "snapwebsites/log.h"
-#include "snapwebsites/not_reached.h"
-#include "snapwebsites/not_used.h"
 #include "snapwebsites/qstring_stream.h"
+
+
+// snapdev lib
+//
+#include <snapdev/not_reached.h>
+#include <snapdev/not_used.h>
 
 
 // Qt lib
@@ -47,7 +51,7 @@
 
 // last include
 //
-#include "snapwebsites/poison.h"
+#include <snapdev/poison.h>
 
 
 

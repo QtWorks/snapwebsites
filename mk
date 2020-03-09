@@ -2,23 +2,27 @@
 #
 # Run make with proper parameters for me...
 
+PROCESSORS=`nproc`
+
 case "$1" in
 "-a"|"--all")
     # Rebuild all
     #
-    make -C ../../BUILD
+    shift
+    make -j${PROCESSORS} -C ../../BUILD $*
     ;;
 
 "-l"|"--less")
     # Rebuild and use less to ease search within long errors (C++...)
     #
-    make -C ../../BUILD/snapwebsites install 2>&1 | less
+    make -C ../../BUILD/snapwebsites install 2>&1 | less -R
     ;;
 
 "-p"|"--packages")
     # Run a dput to generate all the packages on launchpad
     #
-    make -C ../../BUILD dput
+    #make -C ../../BUILD dput
+    echo "Please use ../bin/send-to-launchpad.sh instead"
     ;;
 
 "-v"|"--verbose")
@@ -30,13 +34,13 @@ case "$1" in
 "-r"|"--release")
     # Rebuild the release version
     #
-    make -C ../../RELEASE/snapwebsites install
+    make -j${PROCESSORS} -C ../../RELEASE/snapwebsites install
     ;;
 
 "")
     # Default, just rebuild snapwebsites
     #
-    make -C ../../BUILD/snapwebsites install | grep -v " Up-to-date: "
+    make -j${PROCESSORS} -C ../../BUILD/snapwebsites install | grep -v " Up-to-date: "
 
     # The following is a bit better as it does not print out all the
     # installation stuff, but it does the first part twice which is

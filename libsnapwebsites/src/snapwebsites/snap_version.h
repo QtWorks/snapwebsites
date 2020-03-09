@@ -1,5 +1,5 @@
 // Snap Websites Server -- handle versions and dependencies
-// Copyright (c) 2014-2018  Made to Order Software Corp.  All Rights Reserved
+// Copyright (c) 2014-2019  Made to Order Software Corp.  All Rights Reserved
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -70,8 +70,7 @@ static basic_version_number_t const SPECIAL_VERSION_DEFAULT           = SPECIAL_
 class version_number_t
 {
 public:
-    version_number_t()
-        //: f_version(SPECIAL_VERSION_UNDEFINED) -- auto-init
+    version_number_t() noexcept
     {
     }
 

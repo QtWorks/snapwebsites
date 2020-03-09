@@ -1,5 +1,5 @@
 // Snap Websites Server -- C-like expression scripting support
-// Copyright (c) 2014-2018  Made to Order Software Corp.  All Rights Reserved
+// Copyright (c) 2014-2019  Made to Order Software Corp.  All Rights Reserved
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -17,12 +17,23 @@
 
 //#define SHOW_COMMANDS
 
+
+// self
+//
 #include "snapwebsites/snap_expr.h"
 
+
+// snapwebsites
+//
 #include "snapwebsites/snapwebsites.h"
-#include "snapwebsites/not_reached.h"
-#include "snapwebsites/not_used.h"
 #include "snapwebsites/log.h"
+
+
+// snapdev lib
+//
+#include <snapdev/not_reached.h>
+#include <snapdev/not_used.h>
+
 
 // QtSerialization lib
 //
@@ -30,7 +41,11 @@
 #include <QtSerialization/QSerializationFieldString.h>
 #include <QtSerialization/QSerializationFieldBasicTypes.h>
 
-#include "snapwebsites/poison.h"
+
+// last include
+//
+#include <snapdev/poison.h>
+
 
 
 namespace snap
@@ -1895,7 +1910,9 @@ public:
                                 value = c + pad.repeated(align) + value.mid(1);
                                 break;
                             }
-                            /*FALLTHROUGH*/
+#if __cplusplus >= 201700
+                            [[fallthrough]];
+#endif
                         default:
                             value = pad.repeated(align) + value;
                             break;

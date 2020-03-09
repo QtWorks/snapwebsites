@@ -14,7 +14,7 @@
 #      See the CMake documentation.
 #
 # License:
-#      Copyright (c) 2011-2018  Made to Order Software Corp.  All Rights Reserved
+#      Copyright (c) 2011-2019  Made to Order Software Corp.  All Rights Reserved
 #
 #      https://snapwebsites.org/
 #      contact@m2osw.com
@@ -40,7 +40,7 @@ set( CASSANDRA_HOST_IP "127.0.0.1" CACHE STRING "Host IP address for the cassand
 ## The unified unit tests in one large test
 ##
 
-find_package( Catch )
+find_package(Catch)
 
 if(CATCH_FOUND)
 
@@ -52,15 +52,16 @@ if(CATCH_FOUND)
         test_snap_cgi.cpp
     )
     # while developing you may need to set LD_LIBRARY_PATH
-    #target_link_libraries(test_snap_cgi
-    #    #${SNAPWEBSITES_LIBRARIES}
-    #    #libdbproxy
-    #    #QtCore
-    #    #QtXml
-    #    #QtNetwork
-    #    #tld
-    #)
-    add_test( NAME ${PROJECT_NAME} COMMAND ${PROJECT_NAME} )
+    target_link_libraries(test_snap_cgi
+        ${LIBEXCEPT_LIBRARIES}
+    )
+    add_test(
+        NAME
+            ${PROJECT_NAME}
+
+        COMMAND
+            ${PROJECT_NAME}
+    )
 
 else(CATCH_FOUND)
 

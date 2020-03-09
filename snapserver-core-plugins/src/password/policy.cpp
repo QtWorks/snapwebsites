@@ -1,5 +1,5 @@
 // Snap Websites Server -- password policy handling
-// Copyright (c) 2012-2018  Made to Order Software Corp.  All Rights Reserved
+// Copyright (c) 2012-2019  Made to Order Software Corp.  All Rights Reserved
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -23,9 +23,17 @@
  * or sending an email to him.
  */
 
+
+// self
+//
 #include "password.h"
 
-#include <snapwebsites/poison.h>
+
+// last include
+//
+#include <snapdev/poison.h>
+
+
 
 
 SNAP_PLUGIN_EXTENSION_START(password)

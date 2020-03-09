@@ -2,7 +2,7 @@
 // File:        snapmanager/daemon/snapmanagerdaemon.cpp
 // Object:      Allow for applying functions on any computer.
 //
-// Copyright:   Copyright (c) 2016-2018  Made to Order Software Corp.  All Rights Reserved
+// Copyright:   Copyright (c) 2016-2019  Made to Order Software Corp.  All Rights Reserved
 //              All Rights Reserved.
 //
 // https://snapwebsites.org/
@@ -25,26 +25,41 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-//
+
 
 // self
 //
 #include "snapmanagerdaemon.h"
 
+
 // snapwebsites lib
 //
 #include <snapwebsites/log.h>
 #include <snapwebsites/mkdir_p.h>
-#include <snapwebsites/not_used.h>
-#include <snapwebsites/tokenize_string.h>
 
-// addr lib
+
+// snapdev lib
+//
+#include <snapdev/not_used.h>
+#include <snapdev/tokenize_string.h>
+
+
+// libaddr lib
 //
 #include <libaddr/addr_parser.h>
+
 
 // last include
 //
 #include <sstream>
+
+
+// last include
+//
+#include <snapdev/poison.h>
+
+
+
 
 
 namespace snap_manager
@@ -481,7 +496,7 @@ void manager_daemon::process_message(snap::snap_communicator_message const & mes
     case 'U':
         if(command == "UNKNOWN")
         {
-            // we sent a command that Snap! Communicator did not understand
+            // we sent a command that the receiver did not understand
             //
             SNAP_LOG_ERROR("we sent unknown command \"")(message.get_parameter("command"))("\" and probably did not get the expected result.");
             return;

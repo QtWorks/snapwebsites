@@ -10,7 +10,7 @@
 #      See the CMake documentation.
 #
 # License:
-#      Copyright (c) 2012-2018  Made to Order Software Corp.  All Rights Reserved
+#      Copyright (c) 2012-2019  Made to Order Software Corp.  All Rights Reserved
 #
 #      https://snapwebsites.org/
 #      contact@m2osw.com
@@ -51,9 +51,12 @@ snap_validate_xml( layout/default-theme-parser.xsl simplified-xslt20.dtd )
 snap_validate_xml( layout/functions.xsl            simplified-xslt20.dtd )
 snap_validate_xml( layout/user-messages.xsl        simplified-xslt20.dtd )
 snap_validate_xml( layout/default-body-parser.xsl  simplified-xslt20.dtd )
+snap_validate_xml( layout-tables.xml               tables.xsd            )
 snap_validate_css( layout/style.css                                      )
 
 
+# TODO: remove those since we now provide them in the main cmake module which
+#       sets up the flags (see the UTC_BUILD_<name> macros)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DUTC_YEAR=\"`date -u +%Y`\" -DUTC_MONTH=\"`date -u +%-m`\" -DUTC_DAY=\"`date -u +%-d`\" -DUTC_HOUR=\"`date -u +%-H`\" -DUTC_MINUTE=\"`date -u +%-M`\" -DUTC_SECOND=\"`date -u +%-S`\"")
 
 add_library(layout SHARED

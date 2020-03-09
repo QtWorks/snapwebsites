@@ -1,5 +1,5 @@
 // Snap Websites Server -- manage the snapcommunicator settings
-// Copyright (c) 2016-2018  Made to Order Software Corp.  All Rights Reserved
+// Copyright (c) 2016-2019  Made to Order Software Corp.  All Rights Reserved
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -37,7 +37,8 @@ enum class name_t
     SNAP_NAME_SNAPMANAGERCGI_SNAPCOMMUNICATOR_MY_ADDRESS,
     SNAP_NAME_SNAPMANAGERCGI_SNAPCOMMUNICATOR_NEIGHBORS,
     SNAP_NAME_SNAPMANAGERCGI_SNAPCOMMUNICATOR_REQUIRE,
-    SNAP_NAME_SNAPMANAGERCGI_SNAPCOMMUNICATOR_REQUIRE_FIELD
+    SNAP_NAME_SNAPMANAGERCGI_SNAPCOMMUNICATOR_REQUIRE_FIELD,
+    SNAP_NAME_SNAPMANAGERCGI_SNAPCOMMUNICATOR_SIGNAL_SECRET
 };
 char const * get_name(name_t name) __attribute__ ((const));
 

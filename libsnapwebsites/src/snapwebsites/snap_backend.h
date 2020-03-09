@@ -1,5 +1,5 @@
 // Snap Websites Servers -- snap websites child process hanlding
-// Copyright (c) 2011-2018  Made to Order Software Corp.  All Rights Reserved
+// Copyright (c) 2011-2019  Made to Order Software Corp.  All Rights Reserved
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -24,7 +24,7 @@ namespace snap
 {
 
 class snap_backend
-        : public snap_child
+    : public snap_child
 {
 public:
     typedef std::string         message_t;

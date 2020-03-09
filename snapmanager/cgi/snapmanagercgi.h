@@ -1,5 +1,5 @@
 // Snap Manager CGI -- a snapmanager that works through Apache
-// Copyright (c) 2016-2018  Made to Order Software Corp.  All Rights Reserved
+// Copyright (c) 2016-2019  Made to Order Software Corp.  All Rights Reserved
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -83,8 +83,11 @@ public:
     int                         process();
     snap::snap_uri const &      get_uri() const;
 
-    //void                        generate_content(QDomDocument doc, QDomElement root, QDomElement menu); -- old function
-    SNAP_SIGNAL_WITH_MODE(generate_content, (QDomDocument doc, QDomElement output, QDomElement menu, snap::snap_uri const & uri), (doc, output, menu, uri), START_AND_DONE);
+    SNAP_SIGNAL_WITH_MODE(
+                  generate_content
+                , (QDomDocument doc, QDomElement root, QDomElement output, QDomElement menu, snap::snap_uri const & uri)
+                , (doc, root, output, menu, uri)
+                , START_AND_DONE);
 
 private:
     typedef std::map<std::string, std::string>      post_variables_t;

@@ -9,7 +9,7 @@
  *      See each function below.
  *
  * License:
- *      Copyright (c) 2011-2018  Made to Order Software Corp.  All Rights Reserved
+ *      Copyright (c) 2011-2019  Made to Order Software Corp.  All Rights Reserved
  *
  *      https://snapwebsites.org/
  *      contact@m2osw.com
@@ -540,7 +540,7 @@ namespace libdbproxy
  *
  * \section copyright libQtCassandra copyright and license
  *
- * Copyright (c) 2011-2018  Made to Order Software Corp.  All Rights Reserved
+ * Copyright (c) 2011-2019  Made to Order Software Corp.  All Rights Reserved
  *
  * https://snapwebsites.org/<br/>
  * contact@m2osw.com
@@ -810,7 +810,8 @@ bool libdbproxy::connect( QString const & host, int const port )
     save_consistency_t save_consistency(f_default_consistency_level);
 
     order local_table;
-    local_table.setCql( "SELECT cluster_name,native_protocol_version,partitioner FROM system.local", order::type_of_result_t::TYPE_OF_RESULT_ROWS );
+    local_table.setCql( "SELECT cluster_name,native_protocol_version,partitioner FROM system.local",
+                        order::type_of_result_t::TYPE_OF_RESULT_ROWS );
     local_table.setColumnCount(3);
     order_result const local_table_result(f_proxy->sendOrder(local_table));
 
@@ -1111,8 +1112,14 @@ void libdbproxy::retrieveContextMeta( context::pointer_t c, QString const & cont
     }
 
     // TODO: Calling the DESCRIBE CLUSTER each time is slow
+    //
     //       (TBD: although we really only do it once for
     //       the snap_websites context?)
+    //
+    //       It is now only done once in the snapdbproxy at least, but
+    //       it's still 250Kb of data to transfer to each snap_child!
+    //       Instead we want to switch to using our <name>-table.xml files
+    //       (way smaller!)
     //
     order describe_cluster;
     describe_cluster.setCql( "DESCRIBE CLUSTER", order::type_of_result_t::TYPE_OF_RESULT_DESCRIBE );

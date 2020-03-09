@@ -1,5 +1,5 @@
 // Snap Websites Server -- filter
-// Copyright (c) 2011-2018  Made to Order Software Corp.  All Rights Reserved
+// Copyright (c) 2011-2019  Made to Order Software Corp.  All Rights Reserved
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -15,35 +15,46 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
-// ourselves
+
+// self
 //
 #include "filter.h"
+
 
 // other plugins
 //
 #include "../locale/snap_locale.h"
 #include "../messages/messages.h"
 
+
 // snapwebsites lib
 //
 #include <snapwebsites/log.h>
-#include <snapwebsites/not_used.h>
 #include <snapwebsites/qdomxpath.h>
 #include <snapwebsites/qdomhelpers.h>
 #include <snapwebsites/qstring_stream.h>
+
+
+// snapdev lib
+//
+#include <snapdev/not_used.h>
+
 
 // C++ lib
 //
 #include <iostream>
 #include <cctype>
 
+
 // Qt lib
 //
 #include <QTextStream>
 
-// last entry
+
+// last include
 //
-#include <snapwebsites/poison.h>
+#include <snapdev/poison.h>
+
 
 
 SNAP_PLUGIN_START(filter, 1, 0)
@@ -1301,7 +1312,9 @@ bool filter::filter_text_impl(filter_text_t & txt_filt)
                             // remove the quotes from the parameters
                             //
                             param.f_value = param.f_value.mid(1, param.f_value.size() - 2);
-                            /*FALLTHROUGH*/
+#if __cplusplus >= 201700
+                            [[fallthrough]];
+#endif
                         case token_t::TOK_INTEGER:
                         case token_t::TOK_REAL:
                             t = get_token(tok);
@@ -2033,7 +2046,7 @@ bool filter::body_to_teaser(QDomElement body, filter_teaser_info_t const & info)
  * the purpose of this change, a filename that ends with a period (.) is
  * considered as having an empty extension.
  *
- * \important
+ * \attention
  * Futher the function checks some other things that must be considered
  * valid such as whether the filename starts with a period. Such bad things
  * will result in the function returning an empty filename.

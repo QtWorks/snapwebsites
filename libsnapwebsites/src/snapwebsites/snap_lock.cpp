@@ -1,5 +1,5 @@
 // Snap Lock -- class to handle inter-process and inter-computer locks
-// Copyright (c) 2016-2018  Made to Order Software Corp.  All Rights Reserved
+// Copyright (c) 2016-2019  Made to Order Software Corp.  All Rights Reserved
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -15,20 +15,40 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
+
+// self
+//
 #include "snapwebsites/snap_lock.h"
 
+
+// snapwebsites lib
+//
 #include "snapwebsites/log.h"
-#include "snapwebsites/not_reached.h"
-#include "snapwebsites/not_used.h"
 #include "snapwebsites/qstring_stream.h"
 #include "snapwebsites/snap_communicator_dispatcher.h"
 
+
+// snapdev lib
+//
+#include <snapdev/not_reached.h>
+#include <snapdev/not_used.h>
+
+
+// C++ lib
+//
 #include <iostream>
 
+
+// C lib
+//
 #include <unistd.h>
 #include <sys/syscall.h>
 
-#include "snapwebsites/poison.h"
+
+// last include
+//
+#include <snapdev/poison.h>
+
 
 
 /** \file
@@ -105,6 +125,22 @@ snap_lock::timeout_t g_lock_obtention_timeout = snap_lock::SNAP_LOCK_DEFAULT_TIM
  * snap_lock::SNAP_UNLOCK_MINIMUM_TIMEOUT which is one minute.
  */
 snap_lock::timeout_t g_unlock_duration_timeout = snap_lock::SNAP_UNLOCK_MINIMUM_TIMEOUT;
+
+
+#ifdef _DEBUG
+/** \brief Whether the snapcommunicator parameters were initialized.
+ *
+ * This variable is only used in debug mode. This allows us to know whether
+ * the initialize_snapcommunicator() was called before we make use of the
+ * snap_lock() interface. Without that initialization, we may run in various
+ * problems if the administrator changed his snapcommunicator parameters
+ * such as the port to which we need to connect. This would be a bug in
+ * the code.
+ *
+ * In release mode we ignore that flag.
+ */
+bool g_snapcommunicator_initialized = false;
+#endif
 
 
 /** \brief The default snapcommunicator address.
@@ -322,6 +358,12 @@ lock_connection::lock_connection(QString const & object_name, snap_lock::timeout
     , f_obtention_timeout_date((lock_obtention_timeout == -1 ? g_lock_obtention_timeout : lock_obtention_timeout) + time(nullptr))
     , f_unlock_duration(unlock_duration)
 {
+#ifdef _DEBUG
+    if(!g_snapcommunicator_initialized)
+    {
+        throw snap_lock_not_initialized("your process must call snap::snap_lock::initialize_snapcommunicator() at least once before you can create locks.");
+    }
+#endif
     add_snap_communicator_commands();
 
     // tell the lower level when the lock obtention times out;
@@ -752,7 +794,7 @@ void lock_connection::msg_lockfailed(snap::snap_communicator_message & message)
  * release of your lock by sending the UNLOCK message (see unlock()
  * for more details.)
  *
- * \important
+ * \attention
  * In the second case (lock timed out) the lock will still be in place
  * until your send the UNLOCK message or the amount of time specified
  * in the unlock duration parameter. By default (which is also the minimum,)
@@ -1066,6 +1108,10 @@ void snap_lock::initialize_snapcommunicator(std::string const & addr, int port, 
     g_snapcommunicator_address = addr;
     g_snapcommunicator_port = port;
     g_snapcommunicator_mode = mode;
+
+#ifdef _DEBUG
+    g_snapcommunicator_initialized = true;
+#endif
 }
 
 
@@ -1286,7 +1332,7 @@ bool snap_lock::lock_timedout() const
  *    // here the pervious timeout was restored
  * \endcode
  *
- * \important
+ * \attention
  * The new timeout is ignored if smaller than the current timeout.
  *
  * \todo
@@ -1339,7 +1385,7 @@ raii_lock_duration_timeout::~raii_lock_duration_timeout()
  *    // here the pervious timeout was restored
  * \endcode
  *
- * \important
+ * \attention
  * The new timeout is ignored if smaller than the current timeout.
  *
  * \todo

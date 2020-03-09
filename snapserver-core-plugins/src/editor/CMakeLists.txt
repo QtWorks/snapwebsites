@@ -12,7 +12,7 @@
 #      See the CMake documentation.
 #
 # License:
-#      Copyright (c) 2013-2018  Made to Order Software Corp.  All Rights Reserved
+#      Copyright (c) 2013-2019  Made to Order Software Corp.  All Rights Reserved
 #
 #      https://snapwebsites.org/
 #      contact@m2osw.com
@@ -64,9 +64,13 @@ snap_validate_js( editor.js )
 
 add_library(editor SHARED
     editor.cpp
+
+    create.cpp
     save_info.cpp
+
     ${SNAP_MANAGER_MOC_CXX}
     ${SNAP_MANAGER_RESOURCES_RCC}
+
     buttons.png
     checkmark-15x11.png
     dropdown-arrow-15x15.png

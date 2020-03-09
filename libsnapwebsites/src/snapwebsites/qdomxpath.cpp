@@ -1,5 +1,5 @@
 // Snap Websites Servers -- retrieve a list of nodes from a QDomDocument based on an XPath
-// Copyright (c) 2013-2018  Made to Order Software Corp.  All Rights Reserved
+// Copyright (c) 2013-2019  Made to Order Software Corp.  All Rights Reserved
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -15,15 +15,22 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
+
 // self
 //
 #include "snapwebsites/qdomxpath.h"
 
+
 // snapwebsites lib
 //
 #include "snapwebsites/floats.h"
-#include "snapwebsites/not_used.h"
 #include "snapwebsites/qstring_stream.h"
+
+
+// snapdev lib
+//
+#include <snapdev/not_used.h>
+
 
 // C++ lib
 //
@@ -31,9 +38,10 @@
 #include <iomanip>
 #include <limits>
 
+
 // last include
 //
-#include "snapwebsites/poison.h"
+#include <snapdev/poison.h>
 
 
 
@@ -2353,6 +2361,9 @@ void func_calculate_sum_or_average(variant_vector_t& arguments, bool sum_only)
                 ++count;
                 break;
             }
+#if __cplusplus >= 201700
+            [[fallthrough]];
+#endif
         //case atomic_type_t::ATOMIC_TYPE_DECIMAL:
         case atomic_value_t::type_t::ATOMIC_TYPE_SINGLE:
         case atomic_value_t::type_t::ATOMIC_TYPE_DOUBLE:
@@ -2442,6 +2453,9 @@ void func_calculate_min_or_max(variant_vector_t& arguments, bool min)
                 dresult = static_cast<double>(iresult);
                 break;
             }
+#if __cplusplus >= 201700
+            [[fallthrough]];
+#endif
         //case atomic_type_t::ATOMIC_TYPE_DECIMAL:
         case atomic_value_t::type_t::ATOMIC_TYPE_SINGLE:
         case atomic_value_t::type_t::ATOMIC_TYPE_DOUBLE:
@@ -6144,6 +6158,9 @@ bool get_token()
             }
             f_last_token.f_string += QChar(c);
             f_last_token.f_real = static_cast<double>(f_last_token.f_integer);
+#if __cplusplus >= 201700
+            [[fallthrough]];
+#endif
         case '.':
             c = getc();
             if(f_last_token.f_string == ".")
@@ -6291,7 +6308,9 @@ bool token_is_operator()
         {
             return false;
         }
-        /*FALLTHROUGH*/
+#if __cplusplus >= 201700
+        [[fallthrough]];
+#endif
     case token_t::tok_t::TOK_OPERATOR_AND:
     case token_t::tok_t::TOK_OPERATOR_OR:
     case token_t::tok_t::TOK_OPERATOR_MOD:
@@ -6342,7 +6361,9 @@ bool token_is_node_type()
         {
             return false;
         }
-        /*FALLTHROUGH*/
+#if __cplusplus >= 201700
+        [[fallthrough]];
+#endif
     case token_t::tok_t::TOK_NODE_TYPE_COMMENT:
     case token_t::tok_t::TOK_NODE_TYPE_TEXT:
     case token_t::tok_t::TOK_NODE_TYPE_PROCESSING_INSTRUCTION:
@@ -6432,7 +6453,9 @@ bool token_is_axis_name()
         {
             f_last_token.f_token = token_t::tok_t::TOK_AXIS_NAME_SELF;
         }
-        /*FALLTHROUGH*/
+#if __cplusplus >= 201700
+        [[fallthrough]];
+#endif
     case token_t::tok_t::TOK_AXIS_NAME_ANCESTOR:
     case token_t::tok_t::TOK_AXIS_NAME_ANCESTOR_OR_SELF:
     case token_t::tok_t::TOK_AXIS_NAME_ATTRIBUTE:
@@ -7376,6 +7399,9 @@ void location_path()
         {
         case token_t::tok_t::TOK_DOUBLE_SLASH:
             double_slash = true;
+#if __cplusplus >= 201700
+            [[fallthrough]];
+#endif
         case token_t::tok_t::TOK_SLASH:
             if(first_round)
             {

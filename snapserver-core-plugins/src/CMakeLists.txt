@@ -9,7 +9,7 @@
 #      See the CMake documentation.
 #
 # License:
-#      Copyright (c) 2011-2018  Made to Order Software Corp.  All Rights Reserved
+#      Copyright (c) 2011-2019  Made to Order Software Corp.  All Rights Reserved
 #
 #      https://snapwebsites.org/
 #      contact@m2osw.com
@@ -69,6 +69,7 @@ add_subdirectory(flash)
 add_subdirectory(hashtag)
 add_subdirectory(header)
 add_subdirectory(images)
+add_subdirectory(index)
 add_subdirectory(info)
 add_subdirectory(javascript)
 add_subdirectory(layout)

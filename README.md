@@ -437,16 +437,98 @@ cluster in a GUI. It lets you access the fields as Snap! manages
 them, making it easy to edit some values for test purposes.
 
 
-## snapdatabase
+## [snapdatabase](https://snapwebsites.org/project/snapdatabase)
 
-This is just documentation at the moment. The idea would be to create
-our own database system specifically tailored to our needs instead of
-using a more broad system like Cassandra. Especially now that Cassandra
-imposses the use of CQL. Maybe one day.
+This project is ultimately expected to replace Cassandra. At the moment
+we only use it for journals such as when a change that requires work from
+the backends is made. Cassandra is totally awful with such journaling so
+we instead created our tables.
 
-Another issue with Cassandra (or ScyllaDB) is that it does not manage
-complex indexes like Snap! requires. We'd want our `snapdatabase` to
-be capable of that feat directly within the cluster.
+There is quite a bit of documentation. The main idea of this project is
+to create a database system that is at the same time allowing horizontal
+growth (a la Cassandra, by distributing the data between computers) and
+allowing for the database to handle all the nitty gritty which Cassandra
+doesn't handle such as complex secondary indexes and full on transactions
+(i.e equivalent to a `BEGIN; INSERT/UPDATE/DEETE; COMMIT/ROLLBACK;` block).
+
+In regard to indexes, we have documentation for four different types:
+
+* OID indexes, each row is given an ID and sorted in the database in that
+  way; most tables (all for now) make use of it; it allows for an indirection
+  so other indexes can reference the OID and not the data directly allowing
+  for the data to move about when being updated;
+
+* Primary Index, all rows also have a primary index; this is the same as we
+  have in Cassandra, except that our system is capable to automatically
+  concatenate multiple columns to for the primary index (the latest Cassandra
+  does so too);
+
+* Secondary Indexes, a set of rows (filtered with an equivalent to a `WHERE`
+  clause) are sorted using a different set of columns (`ORDER BY ...`);
+
+* Tree Index, a table which has a Primary Key representing a path (`/a/b/c/...`)
+  can be sorted using a tree index; the path can be anything which forms a
+  tree and the separator does not have to be the slash character;
+
+Having those indexes directly defined in our database will improve the speed
+by a large magnitude. The latest method I use is to build a table with a
+specific primary key which I have to be build using multiple columns. The
+equivaluent of a pre-calculated `WHERE` clause. This works and is really fast,
+however, it has one drawback: it's not all manage with a single transaction
+mechanism. In other words, I may save data in the content table, then try
+to create the index for that new content and that part fails. This can mean
+the database gets out of sync. and we don't really know it. Another point
+which this database implementation will look into preventing.
+
+
+# Tracking Delay of loading a binary under Linux
+
+A very interesting trick is to learn how to get statistics when loading
+a binary under Linux.
+
+    LD_DEBBUG=statistics <path to binary>
+
+The results of the statistics are written in your console so you have
+to capture that output.
+
+First an example of a binary started **cold** (when it is expected that
+many of the libraries were not yet loaded):
+
+    $ LD_DEBUG=statistics ../../BUILD/snapwebsites/snapcgi/src/snap.cgi
+        24351:
+        24351:  runtime linker statistics:
+        24351:    total startup time in dynamic loader: 1970618235 cycles
+        24351:              time needed for relocation: 1961465023 cycles (99.5%)
+        24351:                   number of relocations: 12024
+        24351:        number of relocations from cache: 16995
+        24351:          number of relative relocations: 63446
+        24351:             time needed to load objects: 8439663 cycles (.4%)
+        24351:
+        24351:  runtime linker statistics:
+        24351:             final number of relocations: 14731
+        24351:  final number of relocations from cache: 16995
+
+Second is the same binary, but this time as a **warm** start. We can see
+that it starts about 43 times faster (45.6M cycles instead of 1.97B.)
+
+    $ LD_DEBUG=statistics ../../BUILD/snapwebsites/snapcgi/src/snap.cgi
+        24428:
+        24428:  runtime linker statistics:
+        24428:    total startup time in dynamic loader: 45679278 cycles
+        24428:              time needed for relocation: 35356048 cycles (77.4%)
+        24428:                   number of relocations: 12024
+        24428:        number of relocations from cache: 16995
+        24428:          number of relative relocations: 63446
+        24428:             time needed to load objects: 9565275 cycles (20.9%)
+        24428:
+        24428:  runtime linker statistics:
+        24428:             final number of relocations: 14731
+        24428:  final number of relocations from cache: 16995
+
+As we increase the number of libraries, these numbers may increase. What
+we want to look into in some cases is to either switch to a static link
+(only for low level contribs, though) or to place the item in a separate
+plugin which does not always get loaded.
 
 
 # Bugs

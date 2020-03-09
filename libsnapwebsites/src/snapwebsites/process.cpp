@@ -1,5 +1,5 @@
 // Snap Websites Server -- C++ object to run advance processes
-// Copyright (c) 2013-2018  Made to Order Software Corp.  All Rights Reserved
+// Copyright (c) 2013-2019  Made to Order Software Corp.  All Rights Reserved
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -15,17 +15,21 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
+
 // self
 //
 #include "snapwebsites/process.h"
+
 
 // snapwebsites lib
 //
 #include "snapwebsites/log.h"
 
+
 // C++ lib
 //
 #include <fstream>
+
 
 // C lib
 //
@@ -38,7 +42,9 @@
 
 // last include
 //
-#include "snapwebsites/poison.h"
+#include <snapdev/poison.h>
+
+
 
 
 
@@ -1807,7 +1813,7 @@ process_list::proc_info::pointer_t process_list::next()
 
     if(!f_proctab)
     {
-        f_proctab = std::shared_ptr<PROCTAB>(openproc(f_flags, 0, 0), deleters::delete_proctab);
+        f_proctab.reset(openproc(f_flags, 0, 0), deleters::delete_proctab);
         if(!f_proctab)
         {
             throw snap_process_exception_openproc("process_list::next(): openproc() failed opening \"proc\", cannot read processes.");
@@ -1817,7 +1823,8 @@ process_list::proc_info::pointer_t process_list::next()
     // I tested and if readproc() is called again after returning nullptr, it
     // continues to return nullptr so no need to do anything more
     //
-    std::shared_ptr<proc_t> p(std::shared_ptr<proc_t>(readproc(f_proctab.get(), nullptr), deleters::delete_proc));
+    std::shared_ptr<proc_t> p; // use reset(), see SNAP-507
+    p.reset(readproc(f_proctab.get(), nullptr), deleters::delete_proc);
     if(p)
     {
         return proc_info::pointer_t(new proc_info(p, f_flags));

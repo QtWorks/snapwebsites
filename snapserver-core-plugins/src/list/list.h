@@ -1,5 +1,5 @@
 // Snap Websites Server -- list management (sort criteria)
-// Copyright (c) 2014-2018  Made to Order Software Corp.  All Rights Reserved
+// Copyright (c) 2014-2019  Made to Order Software Corp.  All Rights Reserved
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -209,7 +209,7 @@ public:
     typedef unsigned char       priority_t;
 
     static priority_t const     LIST_PRIORITY_NOW       =   0;      // first page on the list
-    static priority_t const     LIST_PRIORITY_IMPORTANT =  10;      // user / developer says thiss page is really important and should be worked on ASAP
+    static priority_t const     LIST_PRIORITY_IMPORTANT =  10;      // user / developer says this page is really important and should be worked on ASAP
     static priority_t const     LIST_PRIORITY_NEW_PAGE  =  20;      // a new page that was just created
     static priority_t const     LIST_PRIORITY_RESET     =  50;      // user asked for a manual reset of (many) pages
     static priority_t const     LIST_PRIORITY_UPDATES   = 180;      // updates from content.xml files

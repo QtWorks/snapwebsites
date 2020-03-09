@@ -1,5 +1,5 @@
 // Snap Websites Server -- handle AJAX responses
-// Copyright (c) 2014-2018  Made to Order Software Corp.  All Rights Reserved
+// Copyright (c) 2014-2019  Made to Order Software Corp.  All Rights Reserved
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -15,19 +15,43 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
+
+// self
+//
 #include "server_access.h"
 
+
+// other plugins
+//
 #include "../messages/messages.h"
 
-#include <snapwebsites/log.h>
-#include <snapwebsites/not_reached.h>
-#include <snapwebsites/not_used.h>
-#include <snapwebsites/qdomhelpers.h>
-#include <snapwebsites/snap_utf8.h>
 
+// snapwebsites lib
+//
+#include <snapwebsites/log.h>
+#include <snapwebsites/qdomhelpers.h>
+
+
+// libutf8 lib
+//
+#include <libutf8/libutf8.h>
+
+
+// snapdev lib
+//
+#include <snapdev/not_reached.h>
+#include <snapdev/not_used.h>
+
+
+// C++ lib
+//
 #include <iostream>
 
-#include <snapwebsites/poison.h>
+
+// last include
+//
+#include <snapdev/poison.h>
+
 
 
 SNAP_PLUGIN_START(server_access, 1, 0)
@@ -606,7 +630,7 @@ void server_access::ajax_append_data(QString const& name, QByteArray const& data
         return;
     }
 
-    if(is_valid_utf8(data.data()))
+    if(libutf8::is_valid_utf8(data.data()))
     {
         QDomElement snap_tag(f_ajax.documentElement());
         QDomElement data_tag(f_ajax.createElement("data"));

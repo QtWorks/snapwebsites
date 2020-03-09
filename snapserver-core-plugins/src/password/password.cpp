@@ -1,5 +1,5 @@
 // Snap Websites Server -- verify passwords of all the parts used by snap
-// Copyright (c) 2011-2018  Made to Order Software Corp.  All Rights Reserved
+// Copyright (c) 2011-2019  Made to Order Software Corp.  All Rights Reserved
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -15,26 +15,52 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
+
+// self
+//
 #include "./password.h"
 
+
+// other plugins
+//
 #include "../output/output.h"
 #include "../messages/messages.h"
 #include "../permissions/permissions.h"
 
+
+// snapwebsites lib
+//
 #include <snapwebsites/log.h>
-#include <snapwebsites/not_reached.h>
-#include <snapwebsites/not_used.h>
 #include <snapwebsites/fuzzy_string_compare.h>
 #include <snapwebsites/snap_lock.h>
 
+
+// snapdev lib
+//
+#include <snapdev/not_reached.h>
+#include <snapdev/not_used.h>
+
+
+// Qt lib
+//
+#include <QChar>
+
+
+// C++ lib
+//
 #include <algorithm>
 #include <iostream>
 
+
+// OpenSSL lib
+//
 #include <openssl/rand.h>
 
-#include <QChar>
 
-#include <snapwebsites/poison.h>
+// last include
+//
+#include <snapdev/poison.h>
+
 
 
 /** \file

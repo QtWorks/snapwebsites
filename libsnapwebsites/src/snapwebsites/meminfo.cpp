@@ -1,5 +1,5 @@
 // Snap Websites Server -- read /proc/meminfo
-// Copyright (C) 2018  Made to Order Software Corp.
+// Copyright (c) 2018-2019  Made to Order Software Corp.  All Rights Reserved
 //
 // https://snapwebsites.org/
 // contact@m2osw.com
@@ -22,10 +22,16 @@
 //
 #include "snapwebsites/meminfo.h"
 
+
 // snapwebsites lib
 //
 #include "snapwebsites/log.h"
-#include "snapwebsites/tokenize_string.h"
+
+
+// snapdev lib
+//
+#include <snapdev/tokenize_string.h>
+
 
 // C++ lib
 //
@@ -33,6 +39,12 @@
 #include <fstream>
 #include <iostream>
 #include <map>
+
+
+// last include
+//
+#include <snapdev/poison.h>
+
 
 
 

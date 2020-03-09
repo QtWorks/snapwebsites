@@ -9,7 +9,7 @@
 #      See the CMake documentation.
 #
 # License:
-#      Copyright (c) 2011-2018  Made to Order Software Corp.  All Rights Reserved
+#      Copyright (c) 2011-2019  Made to Order Software Corp.  All Rights Reserved
 #
 #      https://snapwebsites.org/
 #      contact@m2osw.com
@@ -50,6 +50,8 @@ target_link_libraries(${PROJECT_NAME}
     ${ADVGETOPT_LIBRARIES}
     ${QT_LIBRARIES}
     ${CASSWRAPPER_LIBRARIES}
+    ${AS2JS_LIBRARIES}
+    ${LIBEXCEPT_LIBRARIES}
 )
 
 install(

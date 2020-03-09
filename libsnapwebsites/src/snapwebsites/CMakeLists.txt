@@ -10,7 +10,7 @@
 #      See the CMake documentation.
 #
 # License:
-#      Copyright (c) 2011-2018  Made to Order Software Corp.  All Rights Reserved
+#      Copyright (c) 2011-2019  Made to Order Software Corp.  All Rights Reserved
 #
 #      https://snapwebsites.org/
 #      contact@m2osw.com
@@ -56,83 +56,11 @@ qt5_add_resources(SNAP_LIBRARY_RESOURCES_RCC
     snap.qrc
 )
 
-set( HEADERS
-    cache_control.h
-    chownnm.h
-    compression.h
-    dbutils.h
-    file_content.h
-    flags.h
-    floats.h
-    fuzzy_string_compare.h
-    glob_dir.h
-    http_client_server.h
-    http_cookie.h
-    http_link.h
-    http_strings.h
-    inet_helpers.h
-    join_strings.h
-    loadavg.h
-    lockfile.h
-    log.h
-    mail_exchanger.h
-    matrix.h
-    meminfo.h
-    minmax.h
-    mkdir_p.h
-    mkgmtime.h
-    mounts.h
-    not_reached.h
-    not_used.h
-    plugins.h
-    poison.h
-    process.h
-    qcaseinsensitivestring.h
-    qdomhelpers.h
-    qdomnodemodel.h
-    qdomreceiver.h
-    qdomxpath.h
-    qhtmlserializer.h
-    qlockfile.h
-    qstring_stream.h
-    quoted_printable.h
-    qxmlmessagehandler.h
-    reverse_cstring.h
-    email.h
-    snap_backend.h
-    snap_cassandra.h
-    snap_child.h
-    snap_communicator.h
-    snap_communicator_dispatcher.h
-    snap_config.h
-    snap_console.h
-    snap_exception.h
-    snap_expr.h
-    snap_image.h
-    snap_initialize_website.h
-    snap_lock.h
-    snap_magic.h
-    snap_parser.h
-    snap_pipe.h
-    snap_signals.h
-    snap_string_list.h
-    snap_tables.h
-    snap_thread.h
-    snap_uri.h
-    snap_utf8.h
-    snap_version.h
-    snapwebsites.h
-    string_pathinfo.h
-    string_replace.h
-    tcp_client_server.h
-    tokenize_string.h
-    udp_client_server.h
-    version.h.in
-    xslt.h
-)
+snap_validate_xml( core-tables.xml tables.xsd )
+
+
 
 add_library( ${PROJECT_NAME} SHARED
-    ${HEADERS}
     cache_control.cpp                           # parse / handle Cache-Control settings
     chownnm.cpp                                 # chown using user and group names instead of uid/gid
     compression.cpp                             # compress/decompress data
@@ -180,11 +108,11 @@ add_library( ${PROJECT_NAME} SHARED
     snap_lock.cpp                               # support for inter-process / inter-computer locks using network and memory only
     snap_magic.cpp                              # support for MIME type
     snap_parser.cpp                             # lexer/parser for all our script like entries
+    snap_pid.cpp                                # RAII PID file management
     snap_pipe.cpp                               # RAII popen()/pclose() class
     snap_tables.cpp                             # table schema/definitions
     snap_thread.cpp                             # a C++ thread implementation
     snap_uri.cpp                                # URI handling
-    snap_utf8.cpp                               # UTF-8 functions
     snap_version.cpp                            # extract name, version, browser info from a filename
     snapwebsites.cpp                            # server
     tcp_client_server.cpp                       # low level TCP/IP that works
@@ -219,20 +147,58 @@ set_target_properties( ${PROJECT_NAME} PROPERTIES
 )
 
 install(
-    TARGETS ${PROJECT_NAME} LIBRARY DESTINATION lib
+    TARGETS
+        ${PROJECT_NAME}
+
+    LIBRARY DESTINATION
+        lib
 )
+
 install(
-    FILES "core-tables.xml"
-    DESTINATION ${SNAP_TABLE_DESCRIPTION_PATH}
+    FILES
+        tables.xsd
+
+    DESTINATION
+        share/snapwebsites/xsd
 )
+
 install(
-    DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
-    DESTINATION include/snapwebsites
-    FILES_MATCHING PATTERN "*.h"
+    FILES
+        core-tables.xml
+
+    DESTINATION
+        ${SNAP_TABLE_DESCRIPTION_PATH}
 )
+
 install(
-    FILES ${CMAKE_CURRENT_BINARY_DIR}/version.h
-    DESTINATION include/snapwebsites
+    DIRECTORY
+        ${CMAKE_CURRENT_SOURCE_DIR}/
+
+    DESTINATION
+        include/snapwebsites
+
+    FILES_MATCHING PATTERN
+        "*.h"
 )
+
+install(
+    FILES
+        ${CMAKE_CURRENT_BINARY_DIR}/version.h
+
+    DESTINATION
+        include/snapwebsites
+)
+
+#
+# WARNING: we use a configure_file(...) on top of an install(FILES ...)
+#          so we can access the file in our SnapXmlLint.cmake without
+#          any additional magic
+#
+configure_file(
+    ${CMAKE_CURRENT_SOURCE_DIR}/tables.xsd
+    ${SNAP_COMMON_DIR}/xsd/tables.xsd
+    COPYONLY
+)
+
 
 # vim: ts=4 sw=4 et nocindent

@@ -2,7 +2,7 @@
 // File:        snapmanager/lib/form.cpp
 // Object:      Helper functions to generate a simple form.
 //
-// Copyright (c) 2016-2018  Made to Order Software Corp.  All Rights Reserved
+// Copyright (c) 2016-2019  Made to Order Software Corp.  All Rights Reserved
 //
 // https://snapwebsites.org/
 // contact@m2osw.com
@@ -26,24 +26,32 @@
 // THE SOFTWARE.
 //
 
-// ourselves
+
+// self
 //
 #include "snapmanager/form.h"
+
 
 // our lib
 //
 #include "snapmanager/manager.h"
 
+
 // snapwebsites lib
 //
 #include <snapwebsites/log.h>
-#include <snapwebsites/not_reached.h>
-#include <snapwebsites/not_used.h>
 #include <snapwebsites/qdomhelpers.h>
 
-// last entry
+
+// snapdev lib
 //
-#include <snapwebsites/poison.h>
+#include <snapdev/not_reached.h>
+#include <snapdev/not_used.h>
+
+
+// last include
+//
+#include <snapdev/poison.h>
 
 
 namespace snap_manager

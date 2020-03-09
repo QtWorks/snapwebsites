@@ -1,5 +1,5 @@
 // Snap Websites Server -- QR Code generator
-// Copyright (c) 2014-2018  Made to Order Software Corp.  All Rights Reserved
+// Copyright (c) 2014-2019  Made to Order Software Corp.  All Rights Reserved
 //
 // https://snapwebsites.org/
 // contact@m2osw.com
@@ -18,21 +18,44 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
+
+// self
+//
 #include "qrcode.h"
 
+
+// other plugins
+//
 #include "../attachment/attachment.h"
 #include "../permissions/permissions.h"
 #include "../shorturl/shorturl.h"
 
-#include <snapwebsites/not_reached.h>
-#include <snapwebsites/not_used.h>
 
+// snapdev lib
+//
+#include <snapdev/not_reached.h>
+#include <snapdev/not_used.h>
+
+
+// C++ lib
+//
 #include <iostream>
 
+
+// QtEncode lib
+//
 #include <qrencode.h>
+
+
+// Magick++ lib
+//
 #include <Magick++.h>
 
-#include <snapwebsites/poison.h>
+
+// last include
+//
+#include <snapdev/poison.h>
+
 
 
 SNAP_PLUGIN_START(qrcode, 1, 0)
@@ -103,15 +126,11 @@ char const *get_name(name_t name)
  * etc.
  */
 
+typedef std::unique_ptr<QRcode, raii_pointer_deleter<QRcode, decltype(&::QRcode_free), &::QRcode_free>> raii_qrcode_t;
 
 
 namespace
 {
-
-void qrcode_deleter(QRcode * code)
-{
-    QRcode_free(code);
-}
 
 
 void data_deleter(unsigned char * data)
@@ -395,7 +414,7 @@ bool qrcode::on_path_execute(content::path_info_t & ipath)
 
                 // let administrator choose version, level?
                 //
-                std::shared_ptr<QRcode> code(QRcode_encodeString(url_utf8.c_str(), 0, QR_ECLEVEL_H, QR_MODE_8, 1), qrcode_deleter);
+                raii_qrcode_t code(QRcode_encodeString(url_utf8.c_str(), 0, QR_ECLEVEL_H, QR_MODE_8, 1));
                 if(code)
                 {
                     // convert resulting QR Code to a black and white blob
@@ -450,7 +469,8 @@ bool qrcode::on_path_execute(content::path_info_t & ipath)
                     }
                     int const scaled_width(width * scale + edge * 2);
                     size_t const size(scaled_width * scaled_width);
-                    std::shared_ptr<unsigned char> data(new unsigned char[size], data_deleter);
+                    std::shared_ptr<unsigned char> data; // use reset(), see SNAP-507
+                    data.reset(new unsigned char[size], data_deleter);
                     unsigned char *ptr(data.get());
                     memset(ptr, 255, size);
                     for(int y(0); y < width; ++y)

@@ -1,5 +1,5 @@
 // Snap Websites Servers -- generate a DOM from the output of an XML Query
-// Copyright (c) 2011-2018  Made to Order Software Corp.  All Rights Reserved
+// Copyright (c) 2011-2019  Made to Order Software Corp.  All Rights Reserved
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -15,9 +15,19 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
+
+// self
+//
 #include "snapwebsites/qdomreceiver.h"
 
-#include "snapwebsites/poison.h"
+
+// last include
+//
+#include <snapdev/poison.h>
+
+
+
+
 
 
 QDomReceiver::QDomReceiver(QXmlNamePool namepool, QDomDocument doc)

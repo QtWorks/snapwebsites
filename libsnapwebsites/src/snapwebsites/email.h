@@ -1,5 +1,5 @@
 // Snap Websites Servers -- create a feed where you can write an email
-// Copyright (c) 2016-2018  Made to Order Software Corp.  All Rights Reserved
+// Copyright (c) 2016-2019  Made to Order Software Corp.  All Rights Reserved
 //
 // https://snapwebsites.org/
 // contact@m2osw.com
@@ -22,9 +22,14 @@
 
 // snapwebsites lib
 //
-#include "snapwebsites/qcaseinsensitivestring.h"
 #include "snapwebsites/snap_exception.h"
 #include "snapwebsites/quoted_printable.h"
+
+
+// snapdev lib
+//
+#include <snapdev/qcaseinsensitivestring.h>
+
 
 // qt serialization lib
 //

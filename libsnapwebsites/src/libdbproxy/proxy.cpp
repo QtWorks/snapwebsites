@@ -10,7 +10,7 @@
  *      See each function below.
  *
  * License:
- *      Copyright (c) 2011-2018  Made to Order Software Corp.  All Rights Reserved
+ *      Copyright (c) 2011-2019  Made to Order Software Corp.  All Rights Reserved
  *
  *      https://snapwebsites.org/
  *      contact@m2osw.com
@@ -419,7 +419,8 @@ void proxy::bio_get()
         bio_initialize();
 
         // create a plain BIO connection
-        std::shared_ptr<BIO> bio(BIO_new(BIO_s_connect()), bio_deleter);
+        std::shared_ptr<BIO> bio;  // use reset(), see SNAP-507
+        bio.reset(BIO_new(BIO_s_connect()), bio_deleter);
         if(!bio)
         {
             ERR_print_errors_fp(stderr);
@@ -438,7 +439,7 @@ void proxy::bio_get()
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wold-style-cast"
         BIO_set_conn_hostname(bio.get(), const_cast<char *>(f_host.toUtf8().data()));
-        BIO_set_conn_int_port(bio.get(), const_cast<int *>(&f_port));
+        BIO_set_conn_port(bio.get(), const_cast<char *>(std::to_string(f_port).c_str()));
 #pragma GCC diagnostic pop
 
         // connect to the server (open the socket)

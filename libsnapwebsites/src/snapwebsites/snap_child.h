@@ -1,5 +1,5 @@
 // Snap Websites Servers -- snap websites child process hanlding
-// Copyright (c) 2011-2018  Made to Order Software Corp.  All Rights Reserved
+// Copyright (c) 2011-2019  Made to Order Software Corp.  All Rights Reserved
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -224,6 +224,22 @@ public:
         SNAP_CHILD_STATUS_RUNNING
     };
 
+    enum class user_status_t
+    {
+        // WARNING: the order is very important, we use a '<' operation
+        //          to know whether a user has enough permission to see
+        //          a certain message (see details in:
+        //          snapserver-core-plugins/src/output/output.cpp)
+        //
+        USER_STATUS_UNKNOWN,
+        USER_STATUS_LOGGED_OUT,
+        USER_STATUS_WEAKLY_LOGGED_IN,
+        USER_STATUS_LOGGED_IN,
+        USER_STATUS_ADMINISTRATIVE_LOGGED_IN
+    };
+
+    typedef int64_t                 user_identifier_t;
+
     typedef std::weak_ptr<server>   server_pointer_t;
     typedef QMap<QString, QString>  environment_map_t;
 
@@ -338,6 +354,7 @@ public:
     virtual                     ~snap_child();
 
     bool                        process(tcp_client_server::bio_client::pointer_t client);
+    std::shared_ptr<server>     get_server() const;
     pid_t                       get_child_pid() const;
     void                        kill();
     status_t                    check_status();
@@ -358,11 +375,13 @@ public:
     QString                     get_data_path();
     QString                     get_list_data_path();
     void                        reset_sites_table();
-    libdbproxy::value
-                                get_site_parameter(QString const & name);
+    libdbproxy::value           get_site_parameter(QString const & name);
     void                        set_site_parameter(QString const & name, libdbproxy::value const & value);
+    void                        user_status(user_status_t status, user_identifier_t id);
     void                        improve_signature(QString const & path, QDomDocument doc, QDomElement signature_tag);
     QString                     error_body(http_code_t err_code, QString const & err_name, QString const & err_description);
+    libdbproxy::libdbproxy::pointer_t
+                                get_cassandra() { return f_cassandra; }
     libdbproxy::context::pointer_t
                                 get_context() { return f_context; }
     QString const &             get_domain_key() const { return f_domain_key; }

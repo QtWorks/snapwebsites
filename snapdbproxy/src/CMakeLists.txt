@@ -11,7 +11,7 @@
 #      See the CMake documentation.
 #
 # License:
-#      Copyright (c) 2016-2018  Made to Order Software Corp.  All Rights Reserved
+#      Copyright (c) 2016-2019  Made to Order Software Corp.  All Rights Reserved
 #
 #      https://snapwebsites.org/
 #      contact@m2osw.com
@@ -50,10 +50,13 @@ add_executable(${PROJECT_NAME}
     snapdbproxy.cpp
     main.cpp
     snapdbproxy_connection.cpp
+    snapdbproxy_initializer.cpp
+    snapdbproxy_initializer_thread.cpp
     snapdbproxy_interrupt.cpp
     snapdbproxy_listener.cpp
     snapdbproxy_messenger.cpp
     snapdbproxy_nocassandra.cpp
+    snapdbproxy_statuschanged.cpp
     snapdbproxy_thread.cpp
 )
 

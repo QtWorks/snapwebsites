@@ -2,7 +2,7 @@
 // File:        snapmanager/daemon/main.cpp
 // Object:      Allow for applying functions on any computer.
 //
-// Copyright (c) 2016-2018  Made to Order Software Corp.  All Rights Reserved
+// Copyright (c) 2016-2019  Made to Order Software Corp.  All Rights Reserved
 //
 // https://snapwebsites.org/
 // contact@m2osw.com
@@ -26,17 +26,25 @@
 // THE SOFTWARE.
 //
 
+
+// self
+//
 #include "snapmanagerdaemon.h"
+
+
+// advgetopt
+//
+#include <advgetopt/exception.h>
+
 
 // Qt lib
 //
 #include <QtCore>
 
 
-
-// last entry
+// last include
 //
-#include <snapwebsites/poison.h>
+#include <snapdev/poison.h>
 
 
 
@@ -86,6 +94,10 @@ int main(int argc, char * argv[])
         daemon->init(argc, argv);
 
         return daemon->run();
+    }
+    catch( advgetopt::getopt_exit const & except )
+    {
+        return except.code();
     }
     catch(snap::snap_exception const & e)
     {

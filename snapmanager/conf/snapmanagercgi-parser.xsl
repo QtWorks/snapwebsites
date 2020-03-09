@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <!--
 Snap Websites Server == snapmanager.cgi parser
-Copyright (c) 2016-2018  Made to Order Software Corp.  All Rights Reserved
+Copyright (c) 2016-2019  Made to Order Software Corp.  All Rights Reserved
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -26,8 +26,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
     <html>
       <head>
         <meta charset="utf-8"/>
-        <title>Snap! Manager</title>
+        <title><xsl:copy-of select="title/node()"/></title>
         <meta name="generator" content="Snap! Manager CGI"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1"/>
+        <meta name="robots" content="noindex,nofollow"/>
         <link rel="bookmark" type="text/html" title="Generator" href="https://snapwebsites.org/project/snap-manager"/>
         <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon"/>
         <link rel="stylesheet" href="/jquery-ui.css"/>

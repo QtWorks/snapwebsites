@@ -7,7 +7,7 @@
  *      can manage them.
  *
  * License:
- *      Copyright (c) 2016-2018  Made to Order Software Corp.  All Rights Reserved
+ *      Copyright (c) 2016-2019  Made to Order Software Corp.  All Rights Reserved
  *
  *      https://snapwebsites.org/
  *      contact@m2osw.com
@@ -32,7 +32,8 @@
  *      SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-// ourselves
+
+// self
 //
 #include "snaplistd.h"
 
@@ -44,14 +45,17 @@
 #include <snapwebsites/qstring_stream.h>
 #include <snapwebsites/snap_string_list.h>
 
+
 // advgetopt lib
 //
 #include <advgetopt/advgetopt.h>
+
 
 // Qt lib
 //
 #include <QtCore>
 #include <QtSql>
+
 
 // C++ lib
 //
@@ -59,9 +63,13 @@
 #include <iostream>
 #include <sstream>
 
+
 // included last
 //
-#include <snapwebsites/poison.h>
+#include <snapdev/poison.h>
+
+
+
 
 /** \file
  * \brief Implementation of the snaplistd daemon.
@@ -94,91 +102,92 @@
 
 namespace
 {
-    const std::vector<std::string> g_configuration_files; // Empty
 
-    advgetopt::getopt::option const g_snaplistd_options[] =
+
+
+advgetopt::option const g_options[] =
+{
     {
-        {
-            '\0',
-            advgetopt::getopt::GETOPT_FLAG_SHOW_USAGE_ON_ERROR,
-            nullptr,
-            nullptr,
-            "Usage: %p [-<opt>]",
-            advgetopt::getopt::argument_mode_t::help_argument
-        },
-        {
-            '\0',
-            advgetopt::getopt::GETOPT_FLAG_SHOW_USAGE_ON_ERROR,
-            nullptr,
-            nullptr,
-            "where -<opt> is one or more of:",
-            advgetopt::getopt::argument_mode_t::help_argument
-        },
-        {
-            'c',
-            advgetopt::getopt::GETOPT_FLAG_ENVIRONMENT_VARIABLE | advgetopt::getopt::GETOPT_FLAG_SHOW_USAGE_ON_ERROR,
-            "config",
-            nullptr,
-            "Configuration file to initialize snaplistd.",
-            advgetopt::getopt::argument_mode_t::optional_argument
-        },
-        {
-            '\0',
-            advgetopt::getopt::GETOPT_FLAG_ENVIRONMENT_VARIABLE,
-            "debug",
-            nullptr,
-            "Start the snaplistd daemon in debug mode.",
-            advgetopt::getopt::argument_mode_t::no_argument
-        },
-        {
-            '\0',
-            advgetopt::getopt::GETOPT_FLAG_ENVIRONMENT_VARIABLE,
-            "debug-listd-messages",
-            nullptr,
-            "Log all the listd messages received by snaplistd.",
-            advgetopt::getopt::argument_mode_t::no_argument
-        },
-        {
-            '\0',
-            advgetopt::getopt::GETOPT_FLAG_SHOW_USAGE_ON_ERROR,
-            "help",
-            nullptr,
-            "show this help output",
-            advgetopt::getopt::argument_mode_t::no_argument
-        },
-        {
-            'l',
-            advgetopt::getopt::GETOPT_FLAG_ENVIRONMENT_VARIABLE,
-            "logfile",
-            nullptr,
-            "Full path to the snaplistd logfile.",
-            advgetopt::getopt::argument_mode_t::optional_argument
-        },
-        {
-            'n',
-            advgetopt::getopt::GETOPT_FLAG_ENVIRONMENT_VARIABLE,
-            "nolog",
-            nullptr,
-            "Only output to the console, not a log file.",
-            advgetopt::getopt::argument_mode_t::no_argument
-        },
-        {
-            '\0',
-            advgetopt::getopt::GETOPT_FLAG_SHOW_USAGE_ON_ERROR,
-            "version",
-            nullptr,
-            "show the version of %p and exit",
-            advgetopt::getopt::argument_mode_t::no_argument
-        },
-        {
-            '\0',
-            0,
-            nullptr,
-            nullptr,
-            nullptr,
-            advgetopt::getopt::argument_mode_t::end_of_options
-        }
-    };
+        'c',
+        advgetopt::GETOPT_FLAG_COMMAND_LINE | advgetopt::GETOPT_FLAG_ENVIRONMENT_VARIABLE | advgetopt::GETOPT_FLAG_REQUIRED | advgetopt::GETOPT_FLAG_SHOW_USAGE_ON_ERROR,
+        "config",
+        nullptr,
+        "Configuration file to initialize snaplistd.",
+        nullptr
+    },
+    {
+        '\0',
+        advgetopt::GETOPT_FLAG_COMMAND_LINE | advgetopt::GETOPT_FLAG_ENVIRONMENT_VARIABLE | advgetopt::GETOPT_FLAG_FLAG,
+        "debug",
+        nullptr,
+        "Start the snaplistd daemon in debug mode.",
+        nullptr
+    },
+    {
+        '\0',
+        advgetopt::GETOPT_FLAG_COMMAND_LINE | advgetopt::GETOPT_FLAG_ENVIRONMENT_VARIABLE | advgetopt::GETOPT_FLAG_FLAG,
+        "debug-listd-messages",
+        nullptr,
+        "Log all the listd messages received by snaplistd.",
+        nullptr
+    },
+    {
+        'l',
+        advgetopt::GETOPT_FLAG_COMMAND_LINE | advgetopt::GETOPT_FLAG_ENVIRONMENT_VARIABLE | advgetopt::GETOPT_FLAG_REQUIRED,
+        "logfile",
+        nullptr,
+        "Full path to the snaplistd logfile.",
+        nullptr
+    },
+    {
+        'n',
+        advgetopt::GETOPT_FLAG_COMMAND_LINE | advgetopt::GETOPT_FLAG_ENVIRONMENT_VARIABLE | advgetopt::GETOPT_FLAG_FLAG,
+        "nolog",
+        nullptr,
+        "Only output to the console, not a log file.",
+        nullptr
+    },
+    {
+        '\0',
+        advgetopt::GETOPT_FLAG_END,
+        nullptr,
+        nullptr,
+        nullptr,
+        nullptr
+    }
+};
+
+
+
+
+
+// until we have C++20 remove warnings this way
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpedantic"
+advgetopt::options_environment const g_options_environment =
+{
+    .f_project_name = "snapwebsites",
+    .f_options = g_options,
+    .f_options_files_directory = nullptr,
+    .f_environment_variable_name = "SNAPLISTD_OPTIONS",
+    .f_configuration_files = nullptr,
+    .f_configuration_filename = nullptr,
+    .f_configuration_directories = nullptr,
+    .f_environment_flags = advgetopt::GETOPT_ENVIRONMENT_FLAG_PROCESS_SYSTEM_PARAMETERS,
+    .f_help_header = "Usage: %p [-<opt>]\n"
+                     "where -<opt> is one or more of:",
+    .f_help_footer = "%c",
+    .f_version = SNAPLISTD_VERSION_STRING,
+    .f_license = "GNU GPL v2",
+    .f_copyright = "Copyright (c) 2013-"
+                   BOOST_PP_STRINGIZE(UTC_BUILD_YEAR)
+                   " by Made to Order Software Corporation -- All Rights Reserved",
+    //.f_build_date = UTC_BUILD_DATE,
+    //.f_build_time = UTC_BUILD_TIME
+};
+#pragma GCC diagnostic pop
+
+
 
 
 }
@@ -207,27 +216,12 @@ namespace
  *
  */
 snaplistd::snaplistd(int argc, char * argv[])
-    : f_opt( argc, argv, g_snaplistd_options, g_configuration_files, nullptr )
+    : f_opt( g_options_environment, argc, argv )
     , f_config("snaplistd")
 {
-    // --help
-    if( f_opt.is_defined( "help" ) )
-    {
-        usage(advgetopt::getopt::status_t::no_error);
-        snap::NOTREACHED();
-    }
-
-    // --version
-    if(f_opt.is_defined("version"))
-    {
-        std::cerr << SNAPLISTD_VERSION_STRING << std::endl;
-        exit(1);
-        snap::NOTREACHED();
-    }
-
     // read the configuration file
     //
-    if(f_opt.is_defined( "config"))
+    if(f_opt.is_defined("config"))
     {
         f_config.set_configuration_path( f_opt.get_string("config") );
     }
@@ -277,7 +271,8 @@ snaplistd::snaplistd(int argc, char * argv[])
     if( f_opt.is_defined( "--" ) )
     {
         std::cerr << "error: unexpected parameter found on snaplistd daemon command line." << std::endl;
-        usage(advgetopt::getopt::status_t::error);
+        std::cerr << f_opt.usage(advgetopt::GETOPT_FLAG_SHOW_USAGE_ON_ERROR);
+        exit(1);
     }
 }
 
@@ -289,21 +284,6 @@ snaplistd::snaplistd(int argc, char * argv[])
  */
 snaplistd::~snaplistd()
 {
-}
-
-
-/** \brief Print out usage and exit with 1.
- *
- * This function prints out the usage of the snaplistd daemon and
- * then it exits.
- *
- * \param[in] status  The reason why the usage is bring printed: error
- *                    and no_error are currently supported.
- */
-void snaplistd::usage(advgetopt::getopt::status_t status)
-{
-    f_opt.usage( status, "snaplistd" );
-    exit(1);
 }
 
 
@@ -763,7 +743,7 @@ void snaplistd::list_data(snap::snap_communicator_message const & message)
             return;
         }
 
-        // if not commiting, then true a rollback() and ignore the
+        // if not committing, then send a rollback() and ignore the
         // result since it's not useful
         //
         if(!QSqlDatabase::database().rollback())
@@ -778,6 +758,7 @@ void snaplistd::list_data(snap::snap_communicator_message const & message)
     //
     snap::snap_communicator_message reply;
     reply.set_command("LISTDATAFAILED");
+    reply.reply_to(message);
     reply.add_parameter("listdata_id", message.get_parameter("listdata_id"));
     f_messenger->send_message(reply);
 }

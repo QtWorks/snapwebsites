@@ -3,7 +3,7 @@
  * Version: 0.0.3.952
  * Browsers: all
  * Depends: output (>= 0.1.4), popup (>= 0.1.0.1), server-access (>= 0.0.1.11), mimetype-basics (>= 0.0.3)
- * Copyright: Copyright (c) 2013-2018  Made to Order Software Corp.  All Rights Reserved
+ * Copyright: Copyright (c) 2013-2019  Made to Order Software Corp.  All Rights Reserved
  * License: GPL 2.0
  */
 
@@ -2845,7 +2845,7 @@ snapwebsites.EditorWidget.prototype.hide = function()
  * widget is also enabled. When the state is specified and is false,
  * then it adds the disabled class.
  *
- * \important
+ * \attention
  * If the state is not of type Boolean, then it is ignored and the
  * widget is always enabled. You may convert any value to a Boolean
  * value using the logical not (!) operator.

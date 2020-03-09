@@ -1,5 +1,5 @@
 // Snap Websites Server -- all the user content and much of the system content
-// Copyright (c) 2011-2018  Made to Order Software Corp.  All Rights Reserved
+// Copyright (c) 2011-2019  Made to Order Software Corp.  All Rights Reserved
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -23,20 +23,37 @@
  * functions of the content plugin.
  */
 
+
+// self
+//
 #include "content.h"
 
+
+// snapwebsites lib
+//
 #include <snapwebsites/compression.h>
 #include <snapwebsites/dbutils.h>
 #include <snapwebsites/log.h>
 
+
+// csspp lib
+//
 #include <csspp/assembler.h>
 #include <csspp/compiler.h>
 #include <csspp/exceptions.h>
 #include <csspp/parser.h>
 
+
+// C++ lib
+//
 #include <iostream>
 
-#include <snapwebsites/poison.h>
+
+// last include
+//
+#include <snapdev/poison.h>
+
+
 
 
 SNAP_PLUGIN_EXTENSION_START(content)
@@ -1112,15 +1129,15 @@ void content::backend_minify_css_file(libdbproxy::row::pointer_t file_row, attac
         {
             if(error_tracker.error_happened())
             {
-                SNAP_LOG_ERROR("backend_process: CSS compiler errors: ")(messages);
+                SNAP_LOG_ERROR("CSS compiler errors: ")(messages);
             }
             else if(error_tracker.warning_happened())
             {
-                SNAP_LOG_WARNING("backend_process: CSS compiler warnings: ")(messages);
+                SNAP_LOG_WARNING("CSS compiler warnings: ")(messages);
             }
             else
             {
-                SNAP_LOG_INFO("backend_process: CSS compiler messages: ")(messages);
+                SNAP_LOG_INFO("CSS compiler messages: ")(messages);
             }
         }
     }

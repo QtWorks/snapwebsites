@@ -1,5 +1,5 @@
 // Snap Websites Server -- command line tool to raise a snap flag
-// Copyright (c) 2018  Made to Order Software Corp.  All Rights Reserved
+// Copyright (c) 2018-2019  Made to Order Software Corp.  All Rights Reserved
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -20,20 +20,28 @@
 //
 #include "snapwebsites/flags.h"
 #include <snapwebsites/log.h>
-#include <snapwebsites/not_reached.h>
 #include <snapwebsites/qstring_stream.h>
 #include <snapwebsites/snap_exception.h>
 #include <snapwebsites/snap_child.h>
-#include <snapwebsites/tokenize_string.h>
 #include <snapwebsites/version.h>
+
+
+// snapdev lib
+//
+#include <snapdev/not_reached.h>
+#include <snapdev/tokenize_string.h>
+
 
 // advgetopt lib
 //
 #include <advgetopt/advgetopt.h>
+#include <advgetopt/exception.h>
+
 
 // boost lib
 //
 #include <boost/algorithm/string.hpp>
+
 
 // Qt lib
 //
@@ -41,153 +49,153 @@
 #include <QDomElement>
 #include <QDomText>
 
+
 // C++ lib
 //
 #include <iomanip>
 #include <regex>
 
 
-// last entry
+// last include
 //
-#include <snapwebsites/poison.h>
+#include <snapdev/poison.h>
+
+
 
 namespace
 {
-    const std::vector<std::string> g_configuration_files;
 
-    const advgetopt::getopt::option g_command_line_options[] =
-    {
-        {
-            '\0',
-            advgetopt::getopt::GETOPT_FLAG_SHOW_USAGE_ON_ERROR,
-            nullptr,
-            nullptr,
-            "Usage: %p [-<opt>]",
-            advgetopt::getopt::argument_mode_t::help_argument
-        },
-        {
-            '\0',
-            advgetopt::getopt::GETOPT_FLAG_SHOW_USAGE_ON_ERROR,
-            nullptr,
-            nullptr,
-            "where -<opt> is one or more of:",
-            advgetopt::getopt::argument_mode_t::help_argument
-        },
-        {
-            'd',
-            0,
-            "down",
-            nullptr,
-            "remove flag (Down)",
-            advgetopt::getopt::argument_mode_t::no_argument
-        },
-        {
-            '\0',
-            0,
-            "function",
-            nullptr,
-            "name of the function in your script calling %p",
-            advgetopt::getopt::argument_mode_t::required_argument
-        },
-        {
-            'h',
-            advgetopt::getopt::GETOPT_FLAG_SHOW_USAGE_ON_ERROR,
-            "help",
-            nullptr,
-            "show this help output",
-            advgetopt::getopt::argument_mode_t::no_argument
-        },
-        {
-            '\0',
-            0,
-            "line",
-            nullptr,
-            "line of your script calling %p",
-            advgetopt::getopt::argument_mode_t::required_argument
-        },
-        {
-            'l',
-            0,
-            "list",
-            nullptr,
-            "list raised flags",
-            advgetopt::getopt::argument_mode_t::no_argument
-        },
-        {
-            'm',
-            0,
-            "manual",
-            nullptr,
-            "mark the flag as a manual flag, it has to manually be turned off by the administrator",
-            advgetopt::getopt::argument_mode_t::no_argument
-        },
-        {
-            'p',
-            0,
-            "priority",
-            nullptr,
-            "a number from 0 to 100, 50+ forces an email to be sent to the administrator",
-            advgetopt::getopt::argument_mode_t::required_argument
-        },
-        {
-            '\0',
-            0,
-            "source-file",
-            nullptr,
-            "name of your script",
-            advgetopt::getopt::argument_mode_t::required_argument
-        },
-        {
-            't',
-            0,
-            "tags",
-            nullptr,
-            "list of tags",
-            advgetopt::getopt::argument_mode_t::required_argument
-        },
-        {
-            'u',
-            0,
-            "up",
-            nullptr,
-            "raise flag (Up), this is the default",
-            advgetopt::getopt::argument_mode_t::no_argument
-        },
-        {
-            '\0',
-            advgetopt::getopt::GETOPT_FLAG_SHOW_USAGE_ON_ERROR,
-            "version",
-            nullptr,
-            "show the version of %p and exit",
-            advgetopt::getopt::argument_mode_t::no_argument
-        },
-        {
-            '\0',
-            0,
-            "xml",
-            nullptr,
-            "list raised flags in an XML format",
-            advgetopt::getopt::argument_mode_t::no_argument
-        },
-        {
-            '\0',
-            advgetopt::getopt::GETOPT_FLAG_SHOW_USAGE_ON_ERROR,
-            nullptr,
-            nullptr,
-            "<unit> <section> <flag> [<message>]",
-            advgetopt::getopt::argument_mode_t::default_multiple_argument
-        },
-        {
-            '\0',
-            0,
-            nullptr,
-            nullptr,
-            nullptr,
-            advgetopt::getopt::argument_mode_t::end_of_options
-        }
-    };
+
+const advgetopt::option g_command_line_options[] =
+{
+    // COMMANDS
+    advgetopt::define_option(
+          advgetopt::Name("up")
+        , advgetopt::ShortName(U'u')
+        , advgetopt::Flags(advgetopt::standalone_command_flags<advgetopt::GETOPT_FLAG_SHOW_USAGE_ON_ERROR
+                                                             , advgetopt::GETOPT_FLAG_GROUP_COMMANDS>())
+        , advgetopt::Help("raise flag (Up), this is the default.")
+    ),
+    advgetopt::define_option(
+          advgetopt::Name("down")
+        , advgetopt::ShortName(U'd')
+        , advgetopt::Flags(advgetopt::standalone_command_flags<advgetopt::GETOPT_FLAG_SHOW_USAGE_ON_ERROR
+                                                             , advgetopt::GETOPT_FLAG_GROUP_COMMANDS>())
+        , advgetopt::Help("remove flag (Down).")
+    ),
+    advgetopt::define_option(
+          advgetopt::Name("list")
+        , advgetopt::ShortName(U'l')
+        , advgetopt::Flags(advgetopt::standalone_command_flags<advgetopt::GETOPT_FLAG_SHOW_USAGE_ON_ERROR
+                                                             , advgetopt::GETOPT_FLAG_GROUP_COMMANDS>())
+        , advgetopt::Help("list currently raised flags.")
+    ),
+    advgetopt::define_option(
+          advgetopt::Name("xml")
+        , advgetopt::ShortName(U'x')
+        , advgetopt::Flags(advgetopt::standalone_command_flags<advgetopt::GETOPT_FLAG_SHOW_USAGE_ON_ERROR
+                                                             , advgetopt::GETOPT_FLAG_GROUP_COMMANDS>())
+        , advgetopt::Help("list currently raised flags.")
+    ),
+
+    // OPTIONS
+    advgetopt::define_option(
+          advgetopt::Name("function")
+        , advgetopt::Flags(advgetopt::command_flags<advgetopt::GETOPT_FLAG_REQUIRED
+                                                  , advgetopt::GETOPT_FLAG_GROUP_OPTIONS>())
+        , advgetopt::Help("name of the function in your script calling %p.")
+    ),
+    advgetopt::define_option(
+          advgetopt::Name("line")
+        , advgetopt::Flags(advgetopt::command_flags<advgetopt::GETOPT_FLAG_REQUIRED
+                                                  , advgetopt::GETOPT_FLAG_GROUP_OPTIONS>())
+        , advgetopt::Help("line of your script calling %p.")
+    ),
+    advgetopt::define_option(
+          advgetopt::Name("manual")
+        , advgetopt::ShortName(U'm')
+        , advgetopt::Flags(advgetopt::standalone_command_flags<advgetopt::GETOPT_FLAG_GROUP_OPTIONS>())
+        , advgetopt::Help("mark the flag as a manual flag, it has to manually be turned off by the administrator.")
+    ),
+    advgetopt::define_option(
+          advgetopt::Name("priority")
+        , advgetopt::ShortName(U'p')
+        , advgetopt::Flags(advgetopt::standalone_command_flags<advgetopt::GETOPT_FLAG_GROUP_OPTIONS>())
+        , advgetopt::Help("a number from 0 to 100, 50+ forces an email to be sent to the administrator (default to 5).")
+    ),
+    advgetopt::define_option(
+          advgetopt::Name("source-file")
+        , advgetopt::Flags(advgetopt::command_flags<advgetopt::GETOPT_FLAG_REQUIRED
+                                                  , advgetopt::GETOPT_FLAG_GROUP_OPTIONS>())
+        , advgetopt::Help("name of your script.")
+    ),
+    advgetopt::define_option(
+          advgetopt::Name("tags")
+        , advgetopt::ShortName(U't')
+        , advgetopt::Flags(advgetopt::command_flags<advgetopt::GETOPT_FLAG_REQUIRED
+                                                  , advgetopt::GETOPT_FLAG_GROUP_OPTIONS>())
+        , advgetopt::Help("list of tags.")
+    ),
+    advgetopt::define_option(
+          advgetopt::Name("--")
+        , advgetopt::Flags(advgetopt::command_flags<advgetopt::GETOPT_FLAG_REQUIRED
+                                                  , advgetopt::GETOPT_FLAG_MULTIPLE
+                                                  , advgetopt::GETOPT_FLAG_DEFAULT_OPTION
+                                                  , advgetopt::GETOPT_FLAG_SHOW_USAGE_ON_ERROR
+                                                  , advgetopt::GETOPT_FLAG_GROUP_OPTIONS>())
+        , advgetopt::Help("<unit> <section> <flag> [<message>]")
+    ),
+    advgetopt::end_options()
+};
+
+
+advgetopt::group_description const g_group_descriptions[] =
+{
+    advgetopt::define_group(
+          advgetopt::GroupNumber(advgetopt::GETOPT_FLAG_GROUP_COMMANDS)
+        , advgetopt::GroupName("command")
+        , advgetopt::GroupDescription("Commands:")
+    ),
+    advgetopt::define_group(
+          advgetopt::GroupNumber(advgetopt::GETOPT_FLAG_GROUP_OPTIONS)
+        , advgetopt::GroupName("option")
+        , advgetopt::GroupDescription("Options:")
+    ),
+    advgetopt::end_groups()
+};
+
+
+// until we have C++20 remove warnings this way
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpedantic"
+advgetopt::options_environment const g_options_environment =
+{
+    .f_project_name = "snapwebsites",
+    .f_options = g_command_line_options,
+    .f_options_files_directory = nullptr,
+    .f_environment_variable_name = nullptr,
+    .f_configuration_files = nullptr,
+    .f_configuration_filename = nullptr,
+    .f_configuration_directories = nullptr,
+    .f_environment_flags = advgetopt::GETOPT_ENVIRONMENT_FLAG_PROCESS_SYSTEM_PARAMETERS,
+    .f_help_header = "Usage: %p [-<opt>]\n"
+                     "where -<opt> is one or more of:",
+    .f_help_footer = nullptr,
+    .f_version = SNAPWEBSITES_VERSION_STRING,
+    .f_license = "GPL v2",
+    .f_copyright = "Copyright (c) 2018-"
+                   BOOST_PP_STRINGIZE(UTC_BUILD_YEAR)
+                   " by Made to Order Software Corporation -- All Rights Reserved",
+    .f_build_date = UTC_BUILD_DATE,
+    .f_build_time = UTC_BUILD_TIME,
+    .f_groups = g_group_descriptions
+};
+#pragma GCC diagnostic pop
+
+
+
 }
-//namespace
+// no name namespace
 
 
 void list_in_plain_text()
@@ -372,21 +380,7 @@ int main(int argc, char * argv[])
 
     try
     {
-        advgetopt::getopt opt(argc, argv, g_command_line_options, g_configuration_files, nullptr);
-
-        if(opt.is_defined("version"))
-        {
-            std::cout << SNAPWEBSITES_VERSION_STRING << std::endl;
-            exit(0);
-            snap::NOTREACHED();
-        }
-
-        if(opt.is_defined("help"))
-        {
-            opt.usage(advgetopt::getopt::status_t::no_error, "raise_flag");
-            exit(1);
-            snap::NOTREACHED();
-        }
+        advgetopt::getopt opt(g_options_environment, argc, argv);
 
         if(opt.is_defined("list"))
         {
@@ -515,7 +509,14 @@ int main(int argc, char * argv[])
             {
                 std::cerr << "raise-flag:error: an error occurred while deleting flag from disk." << std::endl;
             }
+            return 1;
         }
+
+        exitval = 0;
+    }
+    catch( advgetopt::getopt_exit const & except )
+    {
+        exitval = except.code();
     }
     catch( snap::snap_exception const & except )
     {

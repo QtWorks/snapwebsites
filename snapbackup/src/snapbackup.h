@@ -6,7 +6,7 @@
  *      Dumps and restores the "snap_websites" context to/from a SQLite database.
  *
  * License:
- *      Copyright (c) 2012-2018  Made to Order Software Corp.  All Rights Reserved
+ *      Copyright (c) 2012-2019  Made to Order Software Corp.  All Rights Reserved
  *
  *      https://snapwebsites.org/
  *      contact@m2osw.com
@@ -31,19 +31,22 @@
  *      SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-// Snap suppot libs
+// Snap libs
 //
 #include <advgetopt/advgetopt.h>
 #include <casswrapper/query.h>
 
-// 3rd party libs
+// Qt lib
 //
 #include <QSqlQuery>
 #include <QString>
+
+// C++ lib
+//
 #include <exception>
 #include <memory>
 
-typedef std::shared_ptr<advgetopt::getopt>    getopt_ptr_t;
+typedef advgetopt::getopt::pointer_t    getopt_ptr_t;
 
 class snapbackup
 {

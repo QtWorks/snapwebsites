@@ -10,7 +10,7 @@
 #      See the CMake documentation.
 #
 # License:
-#      Copyright (c) 2011-2018  Made to Order Software Corp.  All Rights Reserved
+#      Copyright (c) 2011-2019  Made to Order Software Corp.  All Rights Reserved
 #
 #      https://snapwebsites.org/
 #      contact@m2osw.com
@@ -52,6 +52,7 @@ snap_validate_xml( editor/password-policy-page.xml      editor-form.dtd       )
 snap_validate_xml( layout/password-blacklist-parser.xsl simplified-xslt20.dtd )
 snap_validate_xml( layout/password-policy-parser.xsl    simplified-xslt20.dtd )
 snap_validate_xml( password_widgets/password-form.xsl   simplified-xslt20.dtd )
+snap_validate_xml( password-tables.xml                  tables.xsd            )
 snap_validate_js ( password.js                                                )
 
 

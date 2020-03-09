@@ -9,7 +9,7 @@
 #      See the CMake documentation.
 #
 # License:
-#      Copyright (c) 2011-2018  Made to Order Software Corp.  All Rights Reserved
+#      Copyright (c) 2011-2019  Made to Order Software Corp.  All Rights Reserved
 #
 #      https://snapwebsites.org/
 #      contact@m2osw.com
@@ -57,12 +57,14 @@ find_package( Boost            REQUIRED       )
 find_package( CassValue        REQUIRED       )
 find_package( CassWrapper      REQUIRED       )
 find_package( CSSPP            REQUIRED       )
+find_package( CppThread        REQUIRED       )
 find_package( LibAddr          REQUIRED       )
 find_package( LibExcept        REQUIRED       )
 find_package( LibTLD           REQUIRED       )
 find_package( LibXml2          REQUIRED       )
 find_package( log4cplus        REQUIRED       )
 find_package( Magic            REQUIRED       )
+find_package( Murmur3          REQUIRED       )
 find_package( OpenSSL          REQUIRED       )
 find_package( ProcPS           REQUIRED       )
 find_package( Qt5Core          REQUIRED       )
@@ -75,6 +77,7 @@ find_package( Qt5Xml           REQUIRED       )
 find_package( Qt5XmlPatterns   REQUIRED       )
 find_package( QtSerialization  REQUIRED       )
 find_package( SnapCMakeModules REQUIRED       )
+find_package( SnapLogger       REQUIRED       )
 find_package( ZLIB             REQUIRED       )
 find_package( ZipIos           REQUIRED 2.1   )
 find_package( SnapDoxygen                     )
@@ -125,8 +128,8 @@ include( SnapXmlLint   )
 include( SnapZipLayout )
 
 # WARNING: the order of the following is important
-#          we have to build libsnapwebsites before all the other C++
-#          sub-projects for example
+#          for example we have to build libsnapwebsites before all the
+#          other C++ sub-projects
 #
 add_subdirectory( cmake                   )
 add_subdirectory( libsnapwebsites         )
@@ -141,6 +144,7 @@ add_subdirectory( snapbackup              )
 add_subdirectory( snapbounce              )
 add_subdirectory( snapcgi                 )
 add_subdirectory( snapcommunicator        )
+add_subdirectory( snapdatabase            )
 add_subdirectory( snapdb                  )
 add_subdirectory( snapdbproxy             )
 add_subdirectory( snapfirewall            )

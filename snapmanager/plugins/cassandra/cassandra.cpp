@@ -1,5 +1,5 @@
 // Snap Websites Server -- handle Snap! files cassandra settings
-// Copyright (c) 2016-2018  Made to Order Software Corp.  All Rights Reserved
+// Copyright (c) 2016-2019  Made to Order Software Corp.  All Rights Reserved
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -15,22 +15,30 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
-// cassandra
+
+// self
 //
 #include "cassandra.h"
 
-// our lib
+
+// snapmanager lib
 //
 #include "snapmanager/form.h"
+
 
 // snapwebsites lib
 //
 #include <snapwebsites/chownnm.h>
 #include <snapwebsites/file_content.h>
 #include <snapwebsites/log.h>
-#include <snapwebsites/not_reached.h>
-#include <snapwebsites/not_used.h>
 #include <snapwebsites/process.h>
+
+
+// snapdev lib
+//
+#include <snapdev/not_reached.h>
+#include <snapdev/not_used.h>
+
 
 // Qt lib
 //
@@ -39,9 +47,11 @@
 #include <QFile>
 #include <QTextStream>
 
+
 // casswrapper
 //
 #include <casswrapper/query.h>
+
 
 // C++ lib
 //
@@ -49,13 +59,16 @@
 #include <vector>
 #include <sys/stat.h>
 
+
 // YAML-CPP
 //
 #include <yaml-cpp/yaml.h>
 
-// last entry
+
+// last include
 //
-#include <snapwebsites/poison.h>
+#include <snapdev/poison.h>
+
 
 
 SNAP_PLUGIN_START(cassandra, 1, 0)
@@ -1452,7 +1465,7 @@ void cassandra::on_add_plugin_commands(snap::snap_string_list & understood_comma
 namespace
 {
 
-void import_server_key( const QString& msg_listen_address, const QString& key )
+void import_server_key( QString const & msg_listen_address, QString const & key )
 {
     // Open the file...
     //
@@ -1594,8 +1607,15 @@ void cassandra::on_process_plugin_message(snap::snap_communicator_message const 
     }
     else if( command == "CASSANDRASERVERKEY" )
     {
-        SNAP_LOG_TRACE("Processing command CASSANDRASERVERKEY");
-        import_server_key( message.get_parameter("listen_address"), message.get_parameter("key") );
+        if(message.has_parameter("listen_address"))
+        {
+            SNAP_LOG_TRACE("Processing command CASSANDRASERVERKEY");
+            import_server_key( message.get_parameter("listen_address"), message.get_parameter("key") );
+        }
+        else
+        {
+            SNAP_LOG_TRACE("Command CASSANDRASERVERKEY is missing the \"listen_address\" parameter, is Cassandra properly installed?");
+        }
         processed = true;
     }
 }

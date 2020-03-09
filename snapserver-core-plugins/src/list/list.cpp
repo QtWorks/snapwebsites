@@ -1,5 +1,5 @@
 // Snap Websites Server -- advanced handling of lists
-// Copyright (c) 2014-2018  Made to Order Software Corp.  All Rights Reserved
+// Copyright (c) 2014-2019  Made to Order Software Corp.  All Rights Reserved
 //
 // https://snapwebsites.org/
 // contact@m2osw.com
@@ -22,37 +22,47 @@
 //
 #include "list.h"
 
+
 // other plugins
 //
 #include "../links/links.h"
 #include "../path/path.h"
 #include "../output/output.h"
 
+
 // snapwebsites lib
 //
 #include <snapwebsites/chownnm.h>
 #include <snapwebsites/dbutils.h>
 #include <snapwebsites/log.h>
-#include <snapwebsites/not_reached.h>
-#include <snapwebsites/not_used.h>
 #include <snapwebsites/qdomhelpers.h>
 #include <snapwebsites/snap_backend.h>
 #include <snapwebsites/snap_expr.h>
 #include <snapwebsites/snap_lock.h>
-#include <snapwebsites/tokenize_string.h>
+
+
+// snapdev lib
+//
+#include <snapdev/not_reached.h>
+#include <snapdev/not_used.h>
+#include <snapdev/tokenize_string.h>
+
 
 // csspp lib
 //
 #include <csspp/csspp.h>
+
 
 // Qt lib
 //
 #include <QtCore>
 #include <QtSql>
 
+
 // C++ lib
 //
 #include <iostream>
+
 
 // C lib
 //
@@ -60,9 +70,11 @@
 #include <sys/stat.h>
 #include <sys/time.h>
 
-// last entry
+
+// last include
 //
-#include <snapwebsites/poison.h>
+#include <snapdev/poison.h>
+
 
 
 SNAP_PLUGIN_START(list, 1, 0)
@@ -175,19 +187,6 @@ namespace
 {
 
 
-namespace
-{
-
-void file_descriptor_deleter(int * fd)
-{
-    if(close(*fd) != 0)
-    {
-        int const e(errno);
-        SNAP_LOG_WARNING("closing file descriptor failed (errno: ")(e)(", ")(strerror(e))(")");
-    }
-}
-
-} // no name namespace
 
 
 
@@ -355,7 +354,7 @@ listdata_connection::listdata_connection(QString const & list_data_path)
     f_keep_hour2 = f_end_hour;
     f_hour       = (f_end_hour + 1) % 24;
 
-    // we want to always timeout so that way we can process the next
+    // we want to timeout so that way we can move forward
     //
     set_timeout_date(now + g_listdata_timeout * 1000000LL);
 
@@ -606,13 +605,13 @@ void listdata_connection::process_data(QString const & acknowledgement_id)
             return;
         }
 
-        std::string empty(f_pos - f_start, '\n');
         if(lseek(f_fd, f_start, SEEK_SET) != static_cast<off_t>(f_start))
         {
             SNAP_LOG_ERROR("could not seek to overwrite message.");
             mark_done();
             return;
         }
+        std::string const empty(f_pos - f_start, '\n');
         if(::write(f_fd, empty.c_str(), empty.length()) != static_cast<ssize_t>(empty.length()))
         {
             SNAP_LOG_ERROR("could not overwrite message properly.");
@@ -705,11 +704,6 @@ void listdata_connection::process_data(QString const & acknowledgement_id)
             }
 
             ssize_t const l(lseek(f_fd, 0, SEEK_END));
-            if(l == -1)
-            {
-                SNAP_LOG_WARNING("could not seek to the end of the file \"")(f_filename)("\"");
-                continue;
-            }
 
             // we can lose the lock because the other processes just do an append
             // so we do not need any more protection here (we needed it to
@@ -722,6 +716,14 @@ void listdata_connection::process_data(QString const & acknowledgement_id)
             if(flock(f_fd, LOCK_UN) != 0)
             {
                 SNAP_LOG_INFO("could not unlock file \"")(f_filename)("\" after reading message");
+            }
+
+            // did the lseek() fail?
+            //
+            if(l == -1)
+            {
+                SNAP_LOG_WARNING("could not seek to the end of the file \"")(f_filename)("\"");
+                continue;
             }
 
             if(lseek(f_fd, 0, SEEK_SET) == -1)
@@ -2099,7 +2101,7 @@ void list::on_create_content(content::path_info_t & ipath, QString const & owner
  * \warning
  * As a limitation, a list script that checks the links of another list
  * will likely not update properly. This is because this function will
- * no mark a page as modified when the link being created is a link
+ * not mark a page as modified when the link being created is a link
  * from the list to a page that the list includes.
  *
  * \param[in] link  The link that was just created or deleted.
@@ -2109,15 +2111,86 @@ void list::on_modified_link(links::link_info const & link, bool const created)
 {
     NOTUSED(created);
 
-    // no need to record the fact that we added a link in a list
-    // (that is, at this point a list script cannot depend on the
-    // links of another list...)
-    //
-    if(!f_list_link)
+    if(!created
+    && link.is_unique()
+    && link.name() == get_name(name_t::SNAP_NAME_LIST_TYPE))
     {
+        // the list::type was already removed by this point
+        // however, the backend could be working against this very list
+        // right now, so the DELETE is not going to work 100% of the time
+        //
+        // TODO: fix the discrepancy between the front and back end
+        //
+        // DELETE FROM snap_websites.branch
+        //       WHERE key = '<website>'
+        //         AND column1 >= 'list::'
+        //         AND column1 <= 'list:;';
+        //
+        libdbproxy::libdbproxy::pointer_t cassandra(f_snap->get_cassandra());
+        libdbproxy::context::pointer_t context(f_snap->get_context());
+        libdbproxy::proxy::pointer_t dbproxy(cassandra->getProxy());
+        libdbproxy::order delete_list;
+        delete_list.setCql(QString("DELETE FROM %1.%2 WHERE key=? AND column1>=0x6c6973743a3a AND column1<=0x6c6973743a3b")
+                                .arg(context->contextName())
+                                .arg(content::get_name(content::name_t::SNAP_NAME_CONTENT_BRANCH_TABLE))
+                          , libdbproxy::order::type_of_result_t::TYPE_OF_RESULT_SUCCESS);
+        delete_list.setConsistencyLevel(libdbproxy::CONSISTENCY_LEVEL_ONE);
+
         content::path_info_t ipath;
         ipath.set_path(link.key());
-        on_modified_content(ipath); // same as on_modified_content()
+
+        delete_list.addParameter(ipath.get_branch_key().toUtf8());
+
+        libdbproxy::order_result const delete_list_result(dbproxy->sendOrder(delete_list));
+
+        if(!delete_list_result.succeeded())
+        {
+            SNAP_LOG_ERROR("Error deleting list for website \"")
+                          (link.key())
+                          ("\" from table \"")
+                          (context->contextName())
+                          (".")
+                          (content::get_name(content::name_t::SNAP_NAME_CONTENT_BRANCH_TABLE))
+                          ("\"");
+        }
+
+        QString const list_item_link_name(get_name(name_t::SNAP_NAME_LIST_LINK));
+
+        links::link_info list_item_link_info(list_item_link_name
+                                           , false
+                                           , ipath.get_key()
+                                           , ipath.get_branch());
+        links::links * links_plugin(links::links::instance());
+        QSharedPointer<links::link_context> link_ctxt(links_plugin->new_link_context(list_item_link_info));
+        links::link_info link_child_info;
+        while(link_ctxt->next_link(link_child_info))
+        {
+            content::path_info_t page_ipath;
+            page_ipath.set_path(link_child_info.key());
+
+            links::link_info list_source(list_item_link_name
+                                  , false
+                                  , ipath.get_key()
+                                  , ipath.get_branch());
+            links::link_info list_destination(list_item_link_name
+                                       , false
+                                       , page_ipath.get_key()
+                                       , page_ipath.get_branch());
+            links::links::instance()->delete_this_link(list_source, list_destination);
+        }
+    }
+    else
+    {
+        // no need to record the fact that we added a link in a list
+        // (that is, at this point a list script cannot depend on the
+        // links of another list...)
+        //
+        if(!f_list_link)
+        {
+            content::path_info_t ipath;
+            ipath.set_path(link.key());
+            on_modified_content(ipath); // same as on_modified_content()
+        }
     }
 }
 
@@ -2175,7 +2248,7 @@ void list::on_modified_content(content::path_info_t & ipath)
     // there are times when you may want to debug your code to know which
     // pages are marked as modified; this debug log will help with that
     //
-    SNAP_LOG_DEBUG("list detected that page \"")(ipath.get_key())("\" got modified.");
+    SNAP_LOG_DEBUG("list detected that page \"")(ipath.get_key())("\" was modified.");
 
     // if the same page is modified multiple times then we overwrite the
     // same entry multiple times
@@ -2235,40 +2308,39 @@ void list::on_modified_content(content::path_info_t & ipath)
                 + ";uri=" + canonicalized_key.toUtf8().data()
                 + "\n");
 
-    std::string const journal_filename(std::string(path.c_str()) + "/" + std::to_string(hour) + ".msg");
-    int fd(open(journal_filename.c_str(), O_WRONLY | O_APPEND | O_CREAT, S_IRUSR | S_IWUSR));
-    if(fd < 0)
-    {
-        SNAP_LOG_ERROR("could not open file \"")(journal_filename)("\" for writing");
-        return;
-    }
-    if(chownnm(journal_filename, "snapwebsites", "snapwebsites") != 0)
-    {
-        // as a programmer, if you're not running as snapwebsites, this
-        // warning is normal (I most often run as myself)
-        //
-        int const e(errno);
-        SNAP_LOG_WARNING("could not properly change the ownership of list journal file \"")
-                        (journal_filename)
-                        ("\" to snapwebsites:snapwebsites (errno: ")
-                        (e)
-                        (" -- ")
-                        (strerror(e))
-                        (")");
-    }
-
     // create a block so fd gets closed ASAP (since we have a lock on it,
     // it is best this way)
     {
-        std::shared_ptr<int> safe_fd(&fd, file_descriptor_deleter);
+        std::string const journal_filename(std::string(path.c_str()) + "/" + std::to_string(hour) + ".msg");
+        raii_fd_t safe_fd(open(journal_filename.c_str(), O_WRONLY | O_APPEND | O_CREAT, S_IRUSR | S_IWUSR));
+        if(!safe_fd)
+        {
+            SNAP_LOG_ERROR("could not open file \"")(journal_filename)("\" for writing");
+            return;
+        }
 
-        if(flock(fd, LOCK_EX) != 0)
+        if(chownnm(journal_filename, "snapwebsites", "snapwebsites") != 0)
+        {
+            // as a programmer, if you're not running as snapwebsites, this
+            // warning is normal (I most often run as myself)
+            //
+            int const e(errno);
+            SNAP_LOG_WARNING("could not properly change the ownership of list journal file \"")
+                            (journal_filename)
+                            ("\" to snapwebsites:snapwebsites (errno: ")
+                            (e)
+                            (" -- ")
+                            (strerror(e))
+                            (")");
+        }
+
+        if(flock(safe_fd.get(), LOCK_EX) != 0)
         {
             SNAP_LOG_ERROR("could not lock file \"")(journal_filename)("\" before appending message");
             return;
         }
 
-        if(write(fd, list_item.c_str(), list_item.length()) != static_cast<ssize_t>(list_item.length()))
+        if(write(safe_fd.get(), list_item.c_str(), list_item.length()) != static_cast<ssize_t>(list_item.length()))
         {
             SNAP_LOG_FATAL("could not write to file \"")(journal_filename)("\", list manager may be hosed now");
             return;
@@ -2465,7 +2537,7 @@ int64_t list::get_start_date_offset() const
  * that.
  *
  * \todo
- * Note that at this point this function reads ALL item item from 0 to start
+ * Note that at this point this function reads ALL the items from 0 to start
  * and throw them away. Later we'll add sub-indexes that will allow us to
  * reach any item very quickly. The sub-index will be something like this:
  *
@@ -2573,9 +2645,9 @@ list_item_vector_t list::read_list(content::path_info_t & ipath, int start, int 
 }
 
 
-/** \brief Register the pagelist action.
+/** \brief Register the CRON actions supported by the list plugin.
  *
- * This function registers this plugin CRON action named pagelist.
+ * This function registers this plugin CRON actions as follow:
  *
  * \li listjournal
  *
@@ -2593,7 +2665,8 @@ list_item_vector_t list::read_list(content::path_info_t & ipath, int start, int 
  * The "pagelist" is used by the backend to continuously and as fast as
  * possible build and update lists of pages.
  *
- * \param[in,out] actions  The list of supported actions where we add ourselves.
+ * \param[in,out] actions  The vector of supported actions where we add
+ *                         our own actions.
  */
 void list::on_register_backend_cron(server::backend_action_set & actions)
 {
@@ -2613,7 +2686,7 @@ void list::on_register_backend_cron(server::backend_action_set & actions)
  *
  * The "processalllist" adds all the pages of a website to the 'list'
  * table. This will force the system to re-check every single page.
- * In this case, the pages are give a really low priority which means
+ * In this case, the pages are given a really low priority which means
  * pretty much all other requests will be worked on first. This is
  * similar to running "list::resetlists" except that it does not
  * recompute lists in one go.
@@ -2644,7 +2717,8 @@ void list::on_register_backend_cron(server::backend_action_set & actions)
  * snapbackend http://example.com/ --action list::resetlists
  * \endcode
  *
- * \param[in,out] actions  The list of supported actions where we add ourselves.
+ * \param[in,out] actions  The vector of supported actions where we add
+ *                         our own actions.
  */
 void list::on_register_backend_action(server::backend_action_set & actions)
 {
@@ -2995,7 +3069,7 @@ int list::send_data_to_journal()
  * \li descendants -- children, children of children, etc. of the list itself
  * \li descendants=path -- descendants starting at the specified path
  * \li public -- use the list of public pages (a shortcut for
- *               type=types/taxonomy/system/content-types/page/public
+ *               type=types/taxonomy/system/content-types/page/public)
  * \li type=cpath -- pages of that the specified type as a canonicalized path
  * \li hand-picked=path-list -- a hand defined list of paths that represent
  *                              the pages to put in the list, the cpaths are
@@ -3412,7 +3486,7 @@ int list::generate_all_lists(QString const & site_key)
             query.bindValue(":domain",          site_key                                );
             query.bindValue(":status_limit",    static_cast<qlonglong>(loop_start_time) );
             query.bindValue(":now",             static_cast<qlonglong>(start_date)      );
-            query.bindValue(":slow_priority",   LIST_PRIORITY_SLOW                      );
+            query.bindValue(":slow_priority",   static_cast<int>(LIST_PRIORITY_SLOW)    );
 
             if(!query.exec())
             {

@@ -9,7 +9,7 @@
  *      See each function below.
  *
  * License:
- *      Copyright (c) 2011-2018  Made to Order Software Corp.  All Rights Reserved
+ *      Copyright (c) 2011-2019  Made to Order Software Corp.  All Rights Reserved
  *
  *      https://snapwebsites.org/
  *      contact@m2osw.com
@@ -239,7 +239,7 @@ QByteArray const & order::parameter(int index) const
 {
     if(static_cast<size_t>(index) >= f_parameter.size())
     {
-        throw overflow_exception("QCassandraOrderOrder::parameter() called with an index too large.");
+        throw overflow_exception("order::parameter() called with an index too large.");
     }
     return f_parameter[index];
 }

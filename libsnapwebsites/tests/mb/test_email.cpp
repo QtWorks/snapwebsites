@@ -1,5 +1,5 @@
-// Snap Websites Server -- test email.cpp/h
-// Copyright (c) 2014-2018  Made to Order Software Corp.  All Rights Reserved
+// Snap Websites Server -- test_email.cpp/h
+// Copyright (c) 2014-2019  Made to Order Software Corp.  All Rights Reserved
 //
 // https://snapwebsites.org/
 // contact@m2osw.com
@@ -31,23 +31,36 @@
 //
 #include <snapwebsites/email.h>
 #include <snapwebsites/file_content.h>
-#include <snapwebsites/hexadecimal_string.h>
 #include <snapwebsites/log.h>
-#include <snapwebsites/not_reached.h>
 #include <snapwebsites/qstring_stream.h>
 #include <snapwebsites/snapwebsites.h>
+
+
+// snapdev lib
+//
+#include <snapdev/hexadecimal_string.h>
+#include <snapdev/not_reached.h>
+
 
 // Qt Lib
 //
 #include <QFile>
 
+
 // C++ lib
 //
 #include <functional>
 
+
 // C lib
 //
 #include <unistd.h>
+
+
+// last include
+//
+#include <snapdev/poison.h>
+
 
 
 

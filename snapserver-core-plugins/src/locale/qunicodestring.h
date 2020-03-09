@@ -1,5 +1,5 @@
 // Snap Websites Server -- QString and UnicodeString merge
-// Copyright (c) 2011-2018  Made to Order Software Corp.  All Rights Reserved
+// Copyright (c) 2011-2019  Made to Order Software Corp.  All Rights Reserved
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -16,6 +16,17 @@
 // Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #pragma once
 
+#define U_USING_ICU_NAMESPACE 0
+#if __cplusplus >= 201700
+// This is still TBD, it may very well be that we still have a renaming
+// happening even in newer versions (to be tested)
+//
+#define U_DISABLE_RENAMING 1
+#else
+#define U_DISABLE_RENAMING 0
+#endif
+#define ICUNS U_NAMESPACE_QUALIFIER
+
 // Qt lib
 //
 #include <QString>
@@ -24,9 +35,8 @@
 //
 #include <unicode/unistr.h>
 
-// C++ lib
-//
-#include <string>
+
+
 
 
 /** \file
@@ -38,7 +48,8 @@
  */
 
 
-class QUnicodeString : public UnicodeString
+class QUnicodeString
+    : public ICUNS UnicodeString
 {
 public:
     QUnicodeString()
@@ -47,6 +58,10 @@ public:
 
     QUnicodeString(QString const & qstr)
         : UnicodeString(qstr.utf16()) // both string formats use UTF-16 so we can copy as is
+    {
+    }
+
+    virtual ~QUnicodeString() override
     {
     }
 

@@ -1,5 +1,5 @@
 // Snap Websites Server -- wrapper of popen()/pclose() with iostream like functions
-// Copyright (c) 2013-2018  Made to Order Software Corp.  All Rights Reserved
+// Copyright (c) 2013-2019  Made to Order Software Corp.  All Rights Reserved
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -16,9 +16,20 @@
 // Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #pragma once
 
-#include <QStringList>
 
 #include "snapwebsites/snap_exception.h"
+
+
+// Qt lib
+//
+#include <QStringList>
+
+
+// C++ lib
+//
+#include <vector>
+
+
 
 namespace snap
 {
@@ -41,10 +52,11 @@ public:
 };
 
 
-class snap_string_list : public QStringList
+class snap_string_list
+    : public QStringList
 {
 public:
-    inline snap_string_list() : QStringList() { }
+    inline snap_string_list() noexcept : QStringList() { }
     inline explicit snap_string_list(const QString &i) : QStringList(i) { }
     inline snap_string_list(const QStringList &l) : QStringList(l) { }
     inline snap_string_list(const QList<QString> &l) : QStringList(l) { }

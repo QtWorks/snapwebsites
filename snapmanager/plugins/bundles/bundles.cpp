@@ -1,5 +1,5 @@
 // Snap Websites Server -- manage the bundles
-// Copyright (c) 2016-2018  Made to Order Software Corp.  All Rights Reserved
+// Copyright (c) 2016-2019  Made to Order Software Corp.  All Rights Reserved
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -15,44 +15,56 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
+
 // self
 //
 #include "bundles.h"
+
 
 // snapmanager lib
 //
 #include "snapmanager/bundle.h"
 #include "snapmanager/form.h"
 
+
 // snapwebsites lib
 //
 #include <snapwebsites/file_content.h>
-#include <snapwebsites/join_strings.h>
 #include <snapwebsites/log.h>
-#include <snapwebsites/not_reached.h>
-#include <snapwebsites/not_used.h>
 #include <snapwebsites/process.h>
 #include <snapwebsites/qdomhelpers.h>
-#include <snapwebsites/string_pathinfo.h>
-#include <snapwebsites/tokenize_string.h>
 
-// addr lib
+
+// snapdev lib
+//
+#include <snapdev/join_strings.h>
+#include <snapdev/not_reached.h>
+#include <snapdev/not_used.h>
+#include <snapdev/string_pathinfo.h>
+#include <snapdev/tokenize_string.h>
+
+
+// libaddr lib
 //
 #include <libaddr/addr_parser.h>
 #include <libaddr/iface.h>
 
+
 // Qt lib
 //
 #include <QFile>
+
 
 // C lib
 //
 #include <sys/file.h>
 #include <sys/sysinfo.h>
 
-// last entry
+
+// last include
 //
-#include <snapwebsites/poison.h>
+#include <snapdev/poison.h>
+
 
 
 SNAP_PLUGIN_START(bundles, 1, 0)
@@ -251,16 +263,12 @@ void bundles::retrieve_bundles_status(snap_manager::server_status & server_statu
     // we test the flag once and then go in a loop that's going to be
     // rather slow and a process may lock the database at that point
     //
-    int lock_fd(open("/var/lib/dpkg/lock", O_RDONLY | O_CLOEXEC, 0));
-    if(lock_fd != -1)
+    raii_fd_t const lock_fd(open("/var/lib/dpkg/lock", O_RDONLY | O_CLOEXEC, 0));
+    if(lock_fd)
     {
-        // RAII for the close
-        //
-        std::shared_ptr<int> auto_close(&lock_fd, file_descriptor_deleter);
-
         // the lock file exists, attempt a lock
         //
-        if(::flock(lock_fd, LOCK_EX) != 0)
+        if(::flock(lock_fd.get(), LOCK_EX) != 0)
         {
             return;
         }

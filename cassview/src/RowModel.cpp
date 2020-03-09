@@ -1,5 +1,5 @@
 //===============================================================================
-// Copyright (c) 2011-2018  Made to Order Software Corp.  All Rights Reserved
+// Copyright (c) 2011-2019  Made to Order Software Corp.  All Rights Reserved
 // 
 // https://snapwebsites.org/
 // contact@m2osw.com
@@ -19,15 +19,34 @@
 // Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 //===============================================================================
 
+
+// self
+//
 #include "RowModel.h"
 
-#include <snapwebsites/not_used.h>
+
+// snapwebsites
+//
 #include <snapwebsites/qstring_stream.h>
 #include <snapwebsites/snap_exception.h>
 
+
+// snapdev lib
+//
+#include <snapdev/not_used.h>
+
+
+// Qt lib
+//
 #include <QtCore>
 
-#include <snapwebsites/poison.h>
+
+// last include
+//
+#include <snapdev/poison.h>
+
+
+
 
 using namespace casswrapper;
 
@@ -155,7 +174,7 @@ bool RowModel::setData( const QModelIndex & index, const QVariant & new_col_vari
                 QString str_val( f_dbutils->get_column_value( f_rows[index.row()], value ) );
                 f_dbutils->set_column_value( new_col_key, new_value, str_val );
             }
-            catch( snap::snap_exception )
+            catch( snap::snap_exception const & )
             {
                 // It must have not liked the conversion...
                 //
@@ -205,7 +224,7 @@ bool RowModel::setData( const QModelIndex & index, const QVariant & new_col_vari
 
         return true;
     }
-    catch( const std::exception& except )
+    catch( std::exception const & except )
     {
         displayError( except, tr("Cannot write data to database.") );
         return false;
@@ -242,7 +261,7 @@ bool RowModel::insertRows ( int row, int count, const QModelIndex & parent_index
         }
         endInsertRows();
     }
-    catch( const std::exception& except )
+    catch( std::exception const & except )
     {
         displayError( except, tr("Cannot insert new rows!") );
         return false;
@@ -289,7 +308,7 @@ bool RowModel::removeRows( int row, int count, const QModelIndex & )
         f_rows.erase( f_rows.begin()+row, f_rows.begin()+row+count );
         endRemoveRows();
     }
-    catch( const std::exception& except )
+    catch( std::exception const & except )
     {
         displayError( except, tr("Cannot write data to database.") );
         return false;

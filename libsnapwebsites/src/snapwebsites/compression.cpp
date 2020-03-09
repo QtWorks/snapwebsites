@@ -1,5 +1,5 @@
 // Snap Websites Server -- compress (decompress) data
-// Copyright (c) 2013-2018  Made to Order Software Corp.  All Rights Reserved
+// Copyright (c) 2013-2019  Made to Order Software Corp.  All Rights Reserved
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -15,19 +15,32 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
+// self
+//
 #include "snapwebsites/compression.h"
 
+// self lib
+//
 #include "snapwebsites/log.h"
-#include "snapwebsites/not_used.h"
 
+// snapdev lib
+//
+#include <snapdev/not_used.h>
+
+// Qt lib
+//
 #include <QMap>
 
+// C lib
+//
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 #include <zlib.h>
 #pragma GCC diagnostic pop
 
-#include "snapwebsites/poison.h"
+// last include
+//
+#include <snapdev/poison.h>
 
 
 namespace snap
@@ -888,8 +901,7 @@ public:
         }
 
         // read the header
-        std::vector<char> header;
-        std::copy(f_archive.data() + f_pos, f_archive.data() + f_pos + 512, &header[0]);
+        std::vector<char> header(f_archive.data() + f_pos, f_archive.data() + f_pos + 512);
 
         // MAGIC
         if(header[257] != 'u' || header[258] != 's' || header[259] != 't' || header[260] != 'a'

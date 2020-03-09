@@ -1,5 +1,5 @@
 // Snap Websites Server -- configuration reader
-// Copyright (c) 2011-2018  Made to Order Software Corp.  All Rights Reserved
+// Copyright (c) 2011-2019  Made to Order Software Corp.  All Rights Reserved
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -15,38 +15,48 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
-// ourselves
+// self
 //
 #include "snapwebsites/snap_config.h"
 
-// our lib
+// snapwebsites lib
 //
 #include "snapwebsites/log.h"
-#include "snapwebsites/not_reached.h"
+#include "snapwebsites/qlockfile.h"
 #include "snapwebsites/snap_thread.h"
+
+
+// snapdev lib
+//
+#include <snapdev/not_reached.h>
+
 
 // Qt lib
 //
 #include <QDateTime>
-#include <QFile>
+
 
 // boost lib
 //
 #include <boost/algorithm/string.hpp>
+
 
 // C++ lib
 //
 #include <memory>
 #include <sstream>
 
+
 // C lib
 //
 #include <syslog.h>
 #include <unistd.h>
 
+
 // included last
 //
-#include "snapwebsites/poison.h"
+#include "snapdev/poison.h"
+
 
 
 namespace snap
@@ -551,7 +561,7 @@ bool snap_config_file::actual_write_config_file(std::string const & filename)
 {
     // write to the configuration file now
     //
-    QFile c(QString::fromUtf8(filename.c_str()));
+    QLockFile c(QString::fromUtf8(filename.c_str()));
     if(!c.open(QIODevice::WriteOnly))
     {
         // could not write here, it may be an EPERM
@@ -588,7 +598,7 @@ bool snap_config_file::actual_write_config_file(std::string const & filename)
             QByteArray value(p.second.c_str());
             value.replace("\n", "\\n");
             data += value;
-            data += '\n';  // our actual new line, do not reaplce this one
+            data += '\n';  // our actual new line, do not replace this one
             c.write(data);
         }
         //else -- ignore parameters with invalid names
@@ -805,13 +815,18 @@ snap_configurations::pointer_t snap_configurations::get_instance()
 
         // first do all allocations, so if one fails, it is exception safe
         //
-        std::shared_ptr<snap_configurations> configurations(new snap_configurations());
-        std::shared_ptr<snap_thread::snap_mutex> mutex(new snap_thread::snap_mutex());
+        // WARNING: remember that shared_ptr<>() are not safe as is
+        //          (see SNAP-507 for details)
+        //
+        std::shared_ptr<snap_configurations> configurations; // use reset(), see SNAP-507, can't use make_shared() because constructor is private
+        configurations.reset(new snap_configurations());
+
+        std::shared_ptr<snap_thread::snap_mutex> mutex(std::make_shared<snap_thread::snap_mutex>());
 
         // now that all allocations were done, save the results
         //
-        g_configurations = configurations;
-        g_mutex = mutex;
+        g_configurations.swap(configurations);
+        g_mutex.swap(mutex);
     }
 
     return g_configurations;

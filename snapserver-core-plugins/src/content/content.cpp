@@ -1,5 +1,5 @@
 // Snap Websites Server -- all the user content and much of the system content
-// Copyright (c) 2011-2018  Made to Order Software Corp.  All Rights Reserved
+// Copyright (c) 2011-2019  Made to Order Software Corp.  All Rights Reserved
 //
 // https://snapwebsites.org/
 // contact@m2osw.com
@@ -37,11 +37,13 @@
  * plugin to kick in and fix the corresponding list.)
  */
 
+
 // self
 //
 #include "content.h"
 
 //#include "../messages/messages.h" -- we now have 2 levels (messages and output) so we could include messages.h there
+
 
 // snapwebsites lib
 //
@@ -49,31 +51,38 @@
 #include <snapwebsites/dbutils.h>
 #include <snapwebsites/flags.h>
 #include <snapwebsites/log.h>
-#include <snapwebsites/not_reached.h>
-#include <snapwebsites/not_used.h>
 #include <snapwebsites/qdomhelpers.h>
 #include <snapwebsites/snap_magic.h>
 #include <snapwebsites/snap_image.h>
 #include <snapwebsites/snap_lock.h>
 #include <snapwebsites/snap_version.h>
 
+
+// snapdev lib
+//
+#include <snapdev/not_reached.h>
+#include <snapdev/not_used.h>
+
+
 // Qt lib
 //
 #include <QFile>
 #include <QTextStream>
 
+
 // C++ lib
 //
 #include <iostream>
+
 
 // OpenSSL lib
 //
 #include <openssl/md5.h>
 
 
-// last entry
+// last include
 //
-#include <snapwebsites/poison.h>
+#include <snapdev/poison.h>
 
 
 
@@ -455,7 +464,6 @@ char const * css_extensions[] =
  * This function is used to initialize the content plugin object.
  */
 content::content()
-    //: f_snap(nullptr) -- auto-init
 {
 }
 
@@ -595,6 +603,9 @@ int64_t content::do_update(int64_t last_updated)
  * the compressors are sorted (i.e. smallest version first, largets last)
  * so that way we do not have to check each size field one by one to know
  * which of the version to select and send to the user.
+ *
+ * \param[in] variables_timestamp  The timestamp for all the variables added
+ * to the database by this update (in micro-seconds).
  */
 void content::remove_files_compressor(int64_t variables_timestamp)
 {
@@ -631,7 +642,8 @@ void content::remove_files_compressor(int64_t variables_timestamp)
  * Send our content to the database so the system can find us when a
  * user references our pages.
  *
- * \param[in] variables_timestamp  The timestamp for all the variables added to the database by this update (in micro-seconds).
+ * \param[in] variables_timestamp  The timestamp for all the variables added
+ * to the database by this update (in micro-seconds).
  */
 void content::content_update(int64_t variables_timestamp)
 {
@@ -1025,7 +1037,9 @@ bool content::create_content_impl(path_info_t & ipath, QString const & owner, QS
             // TODO: here we probably need to force a new branch so the
             //       user would not see the old revisions by default...
             //
-            SNAP_LOG_WARNING("Re-instating (i.e. \"Undeleting\") page \"")(ipath.get_key())("\" as we received a create_content() request on a deleted page.");
+            SNAP_LOG_WARNING("Re-instating (i.e. \"Undeleting\") page \"")
+                            (ipath.get_key())
+                            ("\" as we received a create_content() request on a deleted page.");
             status.reset_state(path_info_t::status_t::state_t::NORMAL);
             ipath.set_status(status);
         }
@@ -1100,6 +1114,7 @@ bool content::create_content_impl(path_info_t & ipath, QString const & owner, QS
     }
 
     // add the different basic content dates setup
+    //
     int64_t const start_date(f_snap->get_start_date());
     row->getCell(get_name(name_t::SNAP_NAME_CONTENT_CREATED))->setValue(start_date);
 
@@ -2369,8 +2384,9 @@ bool content::load_attachment(QString const & key, attachment_file & file, bool 
  */
 bool content::modified_content_impl(path_info_t & ipath)
 {
-    if(f_snap->is_ready())
+    if(!f_snap->is_ready())
     {
+        SNAP_LOG_WARNING("Page \"")(ipath.get_key())("\" was allegedly modified but the snap child is not ready.");
         return false;
     }
 
@@ -2427,7 +2443,7 @@ bool content::modified_content_impl(path_info_t & ipath)
  *
  * \note
  * The path should be canonicalized before the call although we call
- * the remove_slashes() function on it cleanup starting and ending
+ * the remove_slashes() function on it to cleanup starting and ending
  * slashes (because the URI object returns paths such as "/login" and
  * the get_content_parameter() requires just "login" to work right.)
  *
@@ -2907,6 +2923,7 @@ void content::add_xml_document(QDomDocument & dom, QString const & plugin_name)
             {
                 // just like a link, only we will end up removing that link
                 // instead of adding it
+                //
                 QString link_name(element.attribute("name"));
                 if(link_name.isEmpty())
                 {
@@ -2919,6 +2936,7 @@ void content::add_xml_document(QDomDocument & dom, QString const & plugin_name)
                 if(!link_name.contains("::"))
                 {
                     // force the owner in the link name
+                    //
                     link_name = QString("%1::%2").arg(plugin_name).arg(link_name);
                 }
                 if(link_name == get_name(name_t::SNAP_NAME_CONTENT_PAGE_TYPE))
@@ -2937,6 +2955,7 @@ void content::add_xml_document(QDomDocument & dom, QString const & plugin_name)
                 if(!link_to.contains("::"))
                 {
                     // force the owner in the link name
+                    //
                     link_to = QString("%1::%2").arg(plugin_name).arg(link_to);
                 }
                 bool source_unique(true);
@@ -3008,6 +3027,7 @@ void content::add_xml_document(QDomDocument & dom, QString const & plugin_name)
                     }
                 }
                 // the destination URL is defined in the <link> content
+                //
                 QString destination_path(element.text());
                 f_snap->canonicalize_path(destination_path);
                 QString const destination_key(f_snap->get_site_key_with_slash() + destination_path);
@@ -3360,10 +3380,10 @@ void content::set_param_type(QString const& path, QString const& name, param_typ
 }
 
 
-/** \brief Add a link to the specified content.
+/** \brief Add (or remove) a link to the specified content.
  *
  * This function links the specified content (defined by path) to the
- * specified destination.
+ * specified destination (the same function is also used to remove a link.)
  *
  * The source parameter defines the name of the link, the path (has to
  * be the same as path) and whether the link is unique.
@@ -3376,13 +3396,13 @@ void content::set_param_type(QString const& path, QString const& name, param_typ
  * database.
  *
  * \warning
- * This function does NOT save the data immediately (if called after the
- * update, then it is saved after the execute() call returns!) Instead
- * the function prepares the data so it can be saved later. This is useful
- * if you expect many changes and dependencies may not all be available at
- * the time you add the content but will be at a later time. If you already
- * have all the data, you may otherwise directly call the
- * links::create_link() function.
+ * This function does NOT save the data to the database immediately (if
+ * called after the update, then it is saved after the execute() call
+ * returns!) Instead the function prepares the data so it can be saved
+ * later. This is useful if you expect many changes and dependencies may
+ * not all be available at the time you add the content but will be at a
+ * later time. If you already have all the data, you may otherwise directly
+ * call the links::create_link() function.
  *
  * \exception content_exception_parameter_not_defined
  * The add_content() function was not called prior to this call.
@@ -3479,6 +3499,7 @@ void content::add_attachment(QString const& path, content_attachment const& ca)
 void content::on_save_content()
 {
     // anything to save?
+    //
     if(f_blocks.isEmpty())
     {
         return;
@@ -3510,6 +3531,7 @@ void content::on_save_content()
     // lock the entire website (this does not prevent others from accessing
     // the site, however, it prevents them from upgrading the database at the
     // same time... note that this is one lock per website)
+    //
     snap_lock lock(QString("%1#updating").arg(site_key));
 
     libdbproxy::table::pointer_t content_table(get_content_table());
@@ -3521,6 +3543,7 @@ void content::on_save_content()
         // now do the actual save
         // connect this entry to the corresponding plugin
         // (unless that field is already defined!)
+        //
         path_info_t ipath;
         ipath.set_path(d->f_path);
 
@@ -4070,6 +4093,7 @@ void content::on_save_links(content_block_links_offset_t list, bool const create
     {
         // f_blocks use QMap so we need to use (*d) to be able to
         // use the C++ offset
+        //
         for(content_links_t::iterator l(((*d).*list).begin());
                 l != ((*d).*list).end(); ++l)
         {
@@ -4083,6 +4107,7 @@ void content::on_save_links(content_block_links_offset_t list, bool const create
                 start_source = snap_version::SPECIAL_VERSION_MIN;
 
                 // get the end from the database
+                //
                 path_info_t ipath;
                 ipath.set_path(l->f_source.key());
                 end_source = content_table->getRow(ipath.get_key())->getCell(last_branch_key)->getValue().safeUInt32Value();
@@ -4093,6 +4118,7 @@ void content::on_save_links(content_block_links_offset_t list, bool const create
                 start_destination = snap_version::SPECIAL_VERSION_MIN;
 
                 // get the end from the database
+                //
                 path_info_t ipath;
                 ipath.set_path(l->f_destination.key());
                 end_destination = content_table->getRow(ipath.get_key())->getCell(last_branch_key)->getValue().safeUInt32Value();

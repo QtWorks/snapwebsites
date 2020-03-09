@@ -1,5 +1,5 @@
 // UDP Client & Server -- classes to ease handling sockets
-// Copyright (c) 2012-2018  Made to Order Software Corp.  All Rights Reserved
+// Copyright (c) 2012-2019  Made to Order Software Corp.  All Rights Reserved
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -17,38 +17,43 @@
 
 
 
-
-
 // self
 //
 #include "snapwebsites/udp_client_server.h"
+
 
 // snapwebsites lib
 //
 #include "snapwebsites/log.h"
 
-// addr lib
+
+// libaddr lib
 //
 #include <libaddr/iface.h>
+
 
 // C++ lib
 //
 #include <sstream>
 
+
 // C lib
 //
-#include <string.h>
-#include <unistd.h>
+#include <fcntl.h>
 #include <net/if.h>
 #include <netinet/in.h>
 #include <netinet/ip.h>
 #include <netinet/udp.h>
+#include <poll.h>
+#include <string.h>
 #include <sys/ioctl.h>
-#include <fcntl.h>
+#include <unistd.h>
+
 
 // last include
 //
-#include "snapwebsites/poison.h"
+#include <snapdev/poison.h>
+
 
 
 
@@ -630,19 +635,24 @@ int udp_server::recv(char * msg, size_t max_size)
  */
 int udp_server::timed_recv(char * msg, size_t const max_size, int const max_wait_ms)
 {
-    fd_set s;
-    FD_ZERO(&s);
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wold-style-cast"
-    FD_SET(f_socket.get(), &s);
-#pragma GCC diagnostic pop
-    struct timeval timeout;
-    timeout.tv_sec = max_wait_ms / 1000;
-    timeout.tv_usec = (max_wait_ms % 1000) * 1000;
-    int const retval(select(f_socket.get() + 1, &s, nullptr, &s, &timeout));
+    struct pollfd fd;
+    fd.events = POLLIN | POLLPRI | POLLRDHUP;
+    fd.fd = f_socket.get();
+    int const retval(poll(&fd, 1, max_wait_ms));
+
+//    fd_set s;
+//    FD_ZERO(&s);
+//#pragma GCC diagnostic push
+//#pragma GCC diagnostic ignored "-Wold-style-cast"
+//    FD_SET(f_socket.get(), &s);
+//#pragma GCC diagnostic pop
+//    struct timeval timeout;
+//    timeout.tv_sec = max_wait_ms / 1000;
+//    timeout.tv_usec = (max_wait_ms % 1000) * 1000;
+//    int const retval(select(f_socket.get() + 1, &s, nullptr, &s, &timeout));
     if(retval == -1)
     {
-        // select() set errno accordingly
+        // poll() sets errno accordingly
         return -1;
     }
     if(retval > 0)

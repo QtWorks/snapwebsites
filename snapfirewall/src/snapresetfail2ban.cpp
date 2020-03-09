@@ -1,5 +1,5 @@
 // Snap Websites Server -- firewall handling by snap
-// Copyright (c) 2011-2018  Made to Order Software Corp.  All Rights Reserved
+// Copyright (c) 2011-2019  Made to Order Software Corp.  All Rights Reserved
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -15,17 +15,23 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
-// ourselves
+// self
 //
 #include "version.h"
+
 
 // snapwebsites lib
 //
 #include <snapwebsites/log.h>
-#include <snapwebsites/not_used.h>
 #include <snapwebsites/process.h>
 #include <snapwebsites/snap_cassandra.h>
 #include <snapwebsites/snapwebsites.h>
+
+
+// snapdev lib
+//
+#include <snapdev/not_used.h>
+
 
 // Qt lib
 //
@@ -33,63 +39,81 @@
 #include <QtSql>
 
 
+// last include
+//
+#include <snapdev/poison.h>
+
+
+
+
+
+
 namespace
 {
 
 
-std::vector<std::string> const g_configuration_files; // Empty
-
-advgetopt::getopt::option const g_snapresetfail2ban_options[] =
+advgetopt::option const g_options[] =
 {
     {
-        '\0',
-        advgetopt::getopt::GETOPT_FLAG_SHOW_USAGE_ON_ERROR,
-        nullptr,
-        nullptr,
-        "Usage: %p [-<opt>]",
-        advgetopt::getopt::argument_mode_t::help_argument
-    },
-    {
-        '\0',
-        advgetopt::getopt::GETOPT_FLAG_SHOW_USAGE_ON_ERROR,
-        nullptr,
-        nullptr,
-        "where -<opt> is one or more of:",
-        advgetopt::getopt::argument_mode_t::help_argument
-    },
-    {
         'c',
-        advgetopt::getopt::GETOPT_FLAG_ENVIRONMENT_VARIABLE | advgetopt::getopt::GETOPT_FLAG_SHOW_USAGE_ON_ERROR,
+        advgetopt::GETOPT_FLAG_COMMAND_LINE | advgetopt::GETOPT_FLAG_ENVIRONMENT_VARIABLE | advgetopt::GETOPT_FLAG_REQUIRED | advgetopt::GETOPT_FLAG_SHOW_USAGE_ON_ERROR,
         "config",
         "/etc/fail2ban",
         "Path to the fail2ban.conf configuration file where 'dbfile' is defined.",
-        advgetopt::getopt::argument_mode_t::optional_argument
+        nullptr
     },
     {
         'h',
-        advgetopt::getopt::GETOPT_FLAG_SHOW_USAGE_ON_ERROR,
+        advgetopt::GETOPT_FLAG_COMMAND_LINE | advgetopt::GETOPT_FLAG_FLAG | advgetopt::GETOPT_FLAG_SHOW_USAGE_ON_ERROR,
         "help",
         nullptr,
         "Show usage and exit.",
-        advgetopt::getopt::argument_mode_t::no_argument
+        nullptr
     },
     {
         '\0',
-        advgetopt::getopt::GETOPT_FLAG_SHOW_USAGE_ON_ERROR,
+        advgetopt::GETOPT_FLAG_COMMAND_LINE | advgetopt::GETOPT_FLAG_FLAG | advgetopt::GETOPT_FLAG_SHOW_USAGE_ON_ERROR,
         "version",
         nullptr,
         "Show the version of %p and exit.",
-        advgetopt::getopt::argument_mode_t::no_argument
+        nullptr
     },
     {
         '\0',
-        0,
+        advgetopt::GETOPT_FLAG_END,
         nullptr,
         nullptr,
         nullptr,
-        advgetopt::getopt::argument_mode_t::end_of_options
+        nullptr
     }
 };
+
+
+
+// until we have C++20 remove warnings this way
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpedantic"
+advgetopt::options_environment const g_options_environment =
+{
+    .f_project_name = "snapwebsites",
+    .f_options = g_options,
+    .f_options_files_directory = nullptr,
+    .f_environment_variable_name = "SNAPRESETFAIL2BAN_OPTIONS",
+    .f_configuration_files = nullptr,
+    .f_configuration_filename = nullptr,
+    .f_configuration_directories = nullptr,
+    .f_environment_flags = 0,
+    .f_help_header = "Usage: %p [-<opt>]\n"
+                     "where -<opt> is one or more of:",
+    .f_help_footer = nullptr,
+    .f_version = SNAPFIREWALL_VERSION_STRING,
+    .f_license = nullptr,
+    .f_copyright = nullptr,
+    //.f_build_date = UTC_BUILD_DATE,
+    //.f_build_time = UTC_BUILD_TIME
+};
+#pragma GCC diagnostic pop
+
 
 
 
@@ -108,12 +132,13 @@ private:
 
 
 snap_resetfail2ban::snap_resetfail2ban(int argc, char * argv[])
-    : f_opt(argc, argv, g_snapresetfail2ban_options, g_configuration_files, "SNAPRESETFAIL2BAN_OPTIONS")
+    : f_opt(g_options_environment, argc, argv)
     , f_config("fail2ban")
 {
     if(f_opt.is_defined("help"))
     {
-        f_opt.usage( advgetopt::getopt::status_t::no_error, "snapresetfail2ban" );
+        std::cerr << f_opt.usage();
+        exit(1);
         snap::NOTREACHED();
     }
 
@@ -252,14 +277,14 @@ void snap_resetfail2ban::run()
 int main(int argc, char * argv[])
 {
     QCoreApplication app(argc, argv);
-    app.setApplicationName   ( "snapbackup"                );
+    app.setApplicationName   ( "snapresetfail2ban"         );
     app.setApplicationVersion( SNAPFIREWALL_VERSION_STRING );
     app.setOrganizationDomain( "snapwebsites.org"          );
     app.setOrganizationName  ( "M2OSW"                     );
 
     try
     {
-        // create an instance of the snap_firewall object
+        // create an instance of the snap_resetfail2ban object
         //
         snap_resetfail2ban resetf2b( argc, argv );
 
@@ -274,19 +299,19 @@ int main(int argc, char * argv[])
     }
     catch( snap::snap_exception const & e )
     {
-        SNAP_LOG_FATAL("snapfirewall: snap_exception caught! ")(e.what());
+        SNAP_LOG_FATAL("snap_exception caught! ")(e.what());
     }
     catch( std::invalid_argument const & e )
     {
-        SNAP_LOG_FATAL("snapfirewall: invalid argument: ")(e.what());
+        SNAP_LOG_FATAL("invalid argument: ")(e.what());
     }
     catch( std::exception const & e )
     {
-        SNAP_LOG_FATAL("snapfirewall: std::exception caught! ")(e.what());
+        SNAP_LOG_FATAL("std::exception caught! ")(e.what());
     }
     catch( ... )
     {
-        SNAP_LOG_FATAL("snapfirewall: unknown exception caught!");
+        SNAP_LOG_FATAL("unknown exception caught!");
     }
 
     return 1;

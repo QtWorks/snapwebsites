@@ -1,5 +1,5 @@
 // Snap Websites Server -- run apt-get to upgrade a computer
-// Copyright (c) 2016-2018  Made to Order Software Corp.  All Rights Reserved
+// Copyright (c) 2016-2019  Made to Order Software Corp.  All Rights Reserved
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -15,19 +15,32 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
-// our lib
+
+// snapmanager lib
 //
 #include "snapmanager/manager.h"
+
+
+// advgetopt lib
+//
+#include <advgetopt/exception.h>
+
 
 // snapwebsites lib
 //
 #include <snapwebsites/log.h>
-#include <snapwebsites/lockfile.h>
 #include <snapwebsites/process.h>
 
-// last entry
+
+// snapdev lib
 //
-#include <snapwebsites/poison.h>
+#include <snapdev/lockfile.h>
+
+
+// last include
+//
+#include <snapdev/poison.h>
+
 
 
 namespace snap
@@ -197,6 +210,10 @@ int main(int argc, char * argv[])
         {
             SNAP_LOG_ERROR("snapupgrader could not lock the upgrading.lock file.");
         }
+    }
+    catch( advgetopt::getopt_exit const & except )
+    {
+        return except.code();
     }
     catch(std::runtime_error const & e)
     {

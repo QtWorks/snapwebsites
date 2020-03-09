@@ -9,7 +9,7 @@
 #      See the CMake documentation.
 #
 # License:
-#      Copyright (c) 2012-2018  Made to Order Software Corp.  All Rights Reserved
+#      Copyright (c) 2012-2019  Made to Order Software Corp.  All Rights Reserved
 #
 #      https://snapwebsites.org/
 #      contact@m2osw.com
@@ -42,8 +42,9 @@ qt5_add_resources(SNAP_MANAGER_RESOURCES_RCC
 )
 
 
-snap_validate_xml( content.xml content.dtd )
-snap_validate_js ( users.js                )
+snap_validate_xml( content.xml      content.dtd )
+snap_validate_xml( users-tables.xml tables.xsd  )
+snap_validate_js ( users.js                     )
 
 add_library(users SHARED
     users.cpp

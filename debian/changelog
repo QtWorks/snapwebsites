@@ -1,5 +1,232 @@
+snapwebsites (1.8.5.0~xenial) xenial; urgency=high
+
+  * Added the snaplogger and cppthread as dependencies (for snapdatabase).
+  * Added the snapdatabase project to handle journals.
+  * Applied a fix to the snaplistd which would not properly reply when an
+    error occurred. This may fix the problems we see where once in a while
+    the list mechanism breaks.
+
+ -- Alexis Wilke <alexis@m2osw.com>  Sat, 11 Jan 2020 22:11:56 -0700
+
+snapwebsites (1.8.4.0~xenial) xenial; urgency=high
+
+  * Added the `watch-freq` script (useful on newer processors).
+  * Removed the `snapbootinit` script from `/usr/bin`.
+  * SNAP-714: Fixed the Cassandra bundle to use OpenSDK v8.
+  * Made snapmanagercgi a dependency of snapmanagerdaemon.
+  * SNAP-713: Add long history (see /etc/profile.d/snap-profile.sh).
+  * SNAP-706: Command prompt warns about entering /etc/snapwebsites.
+  * Updates to match the new advgetopt exceptions.
+  * Fixed a for() loop with a missing "auto".
+  * Various corrections (spelling, etc.).
+
+ -- Alexis Wilke <alexis@m2osw.com>  Thu, 24 Oct 2019 09:14:46 -0700
+
+snapwebsites (1.8.3.0~xenial) xenial; urgency=high
+
+  * SNAP-478: Fixed the count of indexes so the pagers wake up.
+
+ -- Alexis Wilke <alexis@m2osw.com>  Sun,  6 Oct 2019 20:53:23 -0700
+
+snapwebsites (1.8.2.0~xenial) xenial; urgency=high
+
+  * SNAP-698: Removing the DELETE since the incremental function does not
+    keep track of whether a certain table was cleaned up already or not.
+
+ -- Alexis Wilke <alexis@m2osw.com>  Fri,  4 Oct 2019 21:19:40 -0700
+
+snapwebsites (1.8.1.0~xenial) xenial; urgency=high
+
+  * SNAP-698: Applied a fix to the reindex so it runs incrementally and we
+    can then finish the work on a large server.
+  * Changed the RestartSec to 5 sec so it restart fast if needed.
+
+ -- Alexis Wilke <alexis@m2osw.com>  Thu,  3 Oct 2019 03:23:07 -0700
+
+snapwebsites (1.8.0.0~xenial) xenial; urgency=high
+
+  * Also enable the snap-apache2-extra-options.
+  * Added default ServerName (http://127.0.0.1:80) to avoid the Apache warning.
+  * Bump version to 1.8 just before doing an official release.
+
+ -- Alexis Wilke <alexis@m2osw.com>  Tue, 24 Sep 2019 23:23:29 -0700
+
+snapwebsites (1.7.22.0~xenial) xenial; urgency=high
+
+  * Changed the snapmanager-dpkg-update hook to ignore all errors.
+
+ -- Alexis Wilke <alexis@m2osw.com>  Tue, 24 Sep 2019 17:34:53 -0700
+
+snapwebsites (1.7.21.0~xenial) xenial; urgency=high
+
+  * Fixed the users token VERIFIED ON would improperly use LOCALES.
+  * Added support for users::username.
+
+ -- Alexis Wilke <alexis@m2osw.com>  Sun, 15 Aug 2019 15:15:15 -0700
+
+snapwebsites (1.7.20.0~xenial) xenial; urgency=high
+
+  * Fixed the gathering of the signal_secret parameter in the self plugin.
+
+ -- Alexis Wilke <alexis@m2osw.com>  Sat,  7 Sep 2019 11:24:58 -0700
+
+snapwebsites (1.7.19.0~xenial) xenial; urgency=high
+
+  * Updated a couple of files to work with the new addr exceptions.
+
+ -- Alexis Wilke <alexis@m2osw.com>  Tue,  3 Sep 2019 02:18:56 -0700
+
+snapwebsites (1.7.18.0~xenial) xenial; urgency=high
+
+  * Use shredlog to delete secure logs and the snapmanager.conf files.
+  * Comment out the `shred` option in the logrotate, with SSD it's useless.
+  * Removed warning about non-locked log file, it is locked now.
+  * Made snaplogger a dependency of snapbase (to have `shredlog`).
+
+ -- Alexis Wilke <alexis@m2osw.com>  Sat, 24 Aug 2019 02:56:17 -0700
+
+snapwebsites (1.7.17.0~xenial) xenial; urgency=high
+
+  * Fixed the locale so it finds the libraries (i.e. correct namespace).
+
+ -- Alexis Wilke <alexis@m2osw.com>  Tue, 13 Aug 2019 01:57:40 -0700
+
+snapwebsites (1.7.16.1~xenial) xenial; urgency=high
+
+  * Changed the __TIME__ and __DATE__ with our UTC_BUILD_TIME/DATE vars.
+
+ -- Alexis Wilke <alexis@m2osw.com>  Sun, 11 Jul 2019 03:38:20 -0700
+
+snapwebsites (1.7.16.0~xenial) xenial; urgency=high
+
+  * Fixed the end of the server option list.
+
+ -- Alexis Wilke <alexis@m2osw.com>  Sat, 10 Jul 2019 17:09:24 -0700
+
+snapwebsites (1.7.15.0~xenial) xenial; urgency=high
+
+  * Added libutf8 as a new dependency.
+
+ -- Alexis Wilke <alexis@m2osw.com>  Sat, 10 Jul 2019 00:39:16 -0700
+
+snapwebsites (1.7.14.0~xenial) xenial; urgency=high
+
+  * Removed the headers I moved to snapdev earlier.
+  * Clean up some comments that were just old code.
+  * Removed a few fprintf() we still had left in a couple of tests.
+  * Applied a fix to get the ICU to work on 19.04.
+  * Fixed various OpenSSL calls (deprecated, ignored parameters, etc.)
+  * Added #include <vector> in various files.
+  * Made many fallthrough C++17 compatible.
+  * It looks like g++ 8.x wants explicit noexcept.
+  * The ICU library requires a namespace in g++ 8.x.
+  * Removed the YAML_CPP_INCLUDE_DIR because for now it's wrong on 19.04.
+
+ -- Alexis Wilke <alexis@m2osw.com>  Mon, 18 Jul 2019 02:14:58 -0700
+
+snapwebsites (1.7.13.0~xenial) xenial; urgency=high
+
+  * Added snapdev dependency for build to work.
+
+ -- Alexis Wilke <alexis@m2osw.com>  Mon, 18 Jul 2019 02:14:58 -0700
+
+snapwebsites (1.7.12.0~xenial) xenial; urgency=high
+
+  * Updated the command line tools to compile against the new advgetopt.
+  * Added in=C++ to the MAPPING_EXTENSION to all doxy files.
+  * Added the PROJECT_BRIEF description in some doxy files.
+  * Updated all doxy files to 1.8.11.
+  * Added options to the debian/source to avoid including tmp & .git in the
+    source package.
+  * Make use of the UTC_BUILD_YEAR for our copyright notices.
+  * Added a README.md for the library mb tests.
+  * Added a test to verify whether the snap_thread FIFO should be implemented
+    with a vector or a queue. The queue wins big time.
+
+ -- Alexis Wilke <alexis@m2osw.com>  Mon, 13 May 2019 11:52:19 -0700
+
+snapwebsites (1.7.11.0~xenial) xenial; urgency=high
+
+  * Added an enumeration function to enumarate the children of a page and
+    call a callback function. The function ensures that the pages are NORMAL.
+
+ -- Alexis Wilke <alexis@m2osw.com>  Sun, 12 May 2019 15:03:52 -0700
+
+snapwebsites (1.7.10.0~xenial) xenial; urgency=high
+
+  * When removing the `list::type` link from a page, the list plugin
+    automatically deletes all the list related fields, including the
+    ordered list.
+  * Changed a `return` in a `continue` in the `links::delete_link()` function.
+
+ -- Alexis Wilke <alexis@m2osw.com>  Sun,  5 May 2019 02:48:17 -0700
+
+snapwebsites (1.7.9.0~xenial) xenial; urgency=high
+
+  * Added support for a pool of threads and workers.
+
+ -- Alexis Wilke <alexis@m2osw.com>  Tue, 23 Apr 2019 23:36:44 -0700
+
+snapwebsites (1.7.8.0~xenial) xenial; urgency=high
+
+  * SNAP-684: Added the snapclusterstatus command line tool.
+  * SNAP-684: Included a man.1 page for snapclusterstatus.
+  * SNAP-684: Made snapcommunicator save the snap-cluster.txt file with its
+    most current status.
+  * SNAP-684: Fixed a bug in a one computer environment the cluster status
+    was not set until we receive a very first CLUSTERSTATUS message.
+  * EX-204: Fixed the path used to check the field, was using wrong variable.
+  * EX-204: Made the upload reset button appear only if a flag is turned on.
+  * In the snapmanagercgi output, fixed the page title so it includes the
+    host name.
+  * Fixed the double "(Select Host)" message from the status.
+
+ -- Alexis Wilke <alexis@m2osw.com>  Sun, 21 Apr 2019 00:14:19 -0700
+
+snapwebsites (1.7.7.0~xenial) xenial; urgency=high
+
+  * SNAP-181: Applied a fix as the whitelist would not update automatically,
+    we have to save the value in the config (because it's static memory.)
+  * SNAP-181: Fixed the `signal_secret` which would also not get updated.
+  * SNAP-350: Fixed list of supported message in snaplock, the CLUSTERUP
+    and CLUSTERDOWN had to be included.
+  * SNAP-478: Fixed the type for result for a DELETE in the index plugin.
+  * SNAP-478: Fixed the index case, when indexing the key may change, to
+    avoid duplicates, we must delete existing entries that do not match
+    the new 'column1' value.
+  * Fixed the menu, do not show Host Watchdog when no host is selected.
+
+ -- Alexis Wilke <alexis@m2osw.com>  Fri, 19 Apr 2019 20:30:20 -0700
+
+snapwebsites (1.7.6.0~xenial) xenial; urgency=high
+
+  * SNAP-181: added a field to edit the "whitelist" variable from iplock.
+
+ -- Alexis Wilke <alexis@m2osw.com>  Wed, 17 Apr 2019 00:00:20 -0700
+
+snapwebsites (1.7.5.0~xenial) xenial; urgency=high
+
+  * SNAP-526: added a field in snapmanager to edit the `signal_secret` field.
+  * SNAP-478: added the index plugin to the packages.
+
+ -- Alexis Wilke <alexis@m2osw.com>  Mon, 15 Apr 2019 21:56:32 -0700
+
 snapwebsites (1.7.4.0~xenial) xenial; urgency=high
 
+  * SNAP-413 and SNAP-421 and SNAP-454: Moved the snapcreatecontext
+    functionality to snapdbproxy.
+  * SNAP-413: Moved the snapcreatetables functionality to snapdbproxy.
+  * SNAP-413: Fixed the NEWTABLE implementation.
+  * SNAP-267: Added an XSD to verify tables.xml files and updated the
+    CMakeLists.txt.
+  * SNAP-478: implemented the index plugin to have instant "lists".
+  * SNAP-478: added a link() function in snap_expr, useful for indexes.
+  * SNAP-679: added a "temporary" fix to the fail2ban nice value.
+  * SNAP-492: implemented the support for a PID file for snapserver,
+    snabackend, snacommunicator, and snapwatchdog (so far.)
+  * SNAP-641: Started work on a fix to not leak messages to the wrong user.
+  * SNAP-526: added the ability to add a secret code in a UDP message to
+    make them a little more secure.
   * Changed the sendmail algorithm to allow for ignoring the fact that the
     user's email address failed with a bounce before if the user is an admin.
   * When marking a session as used up, save the date when the event happened.
@@ -12,6 +239,25 @@ snapwebsites (1.7.4.0~xenial) xenial; urgency=high
   * Verify buffer length in get_client_addr().
   * Added support for keepalive in the client BIO.
   * Properly initialize a variable in case BIO_get_fd() fails.
+  * Applied a fix to the snapmanager so it does not crash if the name of the
+    host specified on the query string is unknown.
+  * Fixed the cassandra plugin, if the "listen_address" is not defined it
+    would _crash_ when trying to get the parameter when it's not defined.
+  * Applied a fix to the snapstop making the `--service` parameter optional.
+    (The `--service "$MAINPID"` becomes `--service` when $MAINPID is empty.)
+  * Added /etc/vim/vimrc.local so we get our search, line numbers, etc.
+  * Made the attach/detach session RAII so it at least happens on exceptions.
+  * Added function to create a complete page in one call. (editor create_page)
+  * Fixed the f_cassandra_connect_timer_index calculation.
+  * Made the type found by find_type_with() available through another call.
+  * Fixed the default watchdog plugins list, "package" was wrong, "s" missing.
+  * Applied a fix to the message box, it adds a scrollbar when many messages
+    appear in the list.
+  * Fixed HUGE bug in content::modified_content_impl() where I would return
+    false if the snap_child object was ready. That test was inverted!
+  * Various clean ups.
+
+ -- Alexis Wilke <alexis@m2osw.com>  Tue, 05 Mar 2019 10:49:22 -0700
 
 snapwebsites (1.7.3.0~xenial) xenial; urgency=high
 

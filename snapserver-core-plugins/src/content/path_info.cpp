@@ -1,5 +1,5 @@
 // Snap Websites Server -- all the user content and much of the system content
-// Copyright (c) 2011-2018  Made to Order Software Corp.  All Rights Reserved
+// Copyright (c) 2011-2019  Made to Order Software Corp.  All Rights Reserved
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -22,13 +22,27 @@
  * This file contains the path_info class implementation.
  */
 
+
+// self
+//
 #include "content.h"
 
+
+// snapwebsites lib
+//
 #include <snapwebsites/log.h>
 
+
+// libdbproxy lib
+//
 #include <libdbproxy/table.h>
 
-#include <snapwebsites/poison.h>
+
+// last include
+//
+#include <snapdev/poison.h>
+
+
 
 
 SNAP_PLUGIN_EXTENSION_START(content)
@@ -454,7 +468,7 @@ QString path_info_t::get_parameter(QString const & name) const
  * not yet understand... In that case, the best is for your function to
  * return and not process the page in any way.
  *
- * \important
+ * \attention
  * Access to the status values make use the QUORUM consistency instead
  * of the default (which was ONE in older versions of Snap!) This is to
  * ensure that all instances see the same/latest value saved in the
@@ -545,7 +559,7 @@ path_info_t::status_t path_info_t::get_status() const
  * existing status to the new status. If not, we assume that the code
  * is wrong and raise an exception.
  *
- * \important
+ * \attention
  * The Cassandra C++ driver makes use of threads and a certain level of
  * logic to determine which node to send data to next. This means you
  * cannot change the status of a page more than once per run because
@@ -555,7 +569,7 @@ path_info_t::status_t path_info_t::get_status() const
  * with first, then B could very well arrive on a node before A and
  * then the wrong status ends up being saved.
  *
- * \important
+ * \attention
  * Status values are using the QUORUM consistency instead of the default
  * (which was ONE in older versions of Snap!) This is to ensure that all
  * instances see the same/latest value saved in the database. However,

@@ -1,5 +1,5 @@
 // Snap Websites Servers -- Fuzzy String Comparisons
-// Copyright (c) 2011-2018  Made to Order Software Corp.  All Rights Reserved
+// Copyright (c) 2011-2019  Made to Order Software Corp.  All Rights Reserved
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -15,11 +15,20 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
+
+// self
+//
 #include "snapwebsites/fuzzy_string_compare.h"
 
+
+// C++ lib
+//
 #include <vector>
 
-#include "snapwebsites/poison.h"
+
+// last include
+//
+#include <snapdev/poison.h>
 
 
 namespace snap
@@ -37,7 +46,7 @@ namespace snap
  * This algorithm comes from Wikipedia:
  * https://en.wikipedia.org/wiki/Levenshtein_distance
  *
- * \important
+ * \attention
  * The function does not change the case of the string. If you want
  * to compare case insensitive, make sure to convert the string to
  * lowercase first. You may also want to simplify the string (i.e.

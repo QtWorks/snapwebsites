@@ -1,5 +1,5 @@
 //===============================================================================
-// Copyright (c) 2011-2018  Made to Order Software Corp.  All Rights Reserved
+// Copyright (c) 2011-2019  Made to Order Software Corp.  All Rights Reserved
 // 
 // The source code in this file ("Source Code") is provided by Made to Order Software Corporation
 // to you under the terms of the GNU General Public License, version 2.0
@@ -14,17 +14,40 @@
 // COMPLETENESS OR PERFORMANCE.
 //===============================================================================
 
-#include "TableModel.h"
-#include <snapwebsites/log.h>
-#include <snapwebsites/not_used.h>
 
+// self
+//
+#include "TableModel.h"
+
+
+// snapwebsites lib
+//
+#include <snapwebsites/log.h>
+
+
+// snapdev lib
+//
+#include <snapdev/not_used.h>
+
+
+// Qt lib
+//
 #include <QSettings>
 #include <QVariant>
 
+
+// C++ lib
+//
 #include <iostream>
 #include <exception>
 
-#include <snapwebsites/poison.h>
+
+// last include
+//
+#include <snapdev/poison.h>
+
+
+
 
 using namespace casswrapper;
 

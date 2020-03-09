@@ -1,5 +1,5 @@
 // Snap Websites Server -- handle creating / encrypting password
-// Copyright (c) 2011-2018  Made to Order Software Corp.  All Rights Reserved
+// Copyright (c) 2011-2019  Made to Order Software Corp.  All Rights Reserved
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -15,31 +15,46 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
-// ourselves
+
+// self
 //
-#include <snapwebsites/hexadecimal_string.h>
-#include "snapwebsites/not_used.h"
 #include "snapwebsites/password.h"
+
+
+// snapdev lib
+//
+#include <snapdev/hexadecimal_string.h>
+#include <snapdev/not_used.h>
+
 
 // boost lib
 //
 #include <boost/static_assert.hpp>
+
+
+// OpenSSL lib
+//
+#include <openssl/err.h>
+#include <openssl/evp.h>
+#include <openssl/rand.h>
+
 
 // C++ lib
 //
 #include <memory>
 #include <iostream>
 
-// openssl lib
-//
-#include <openssl/err.h>
-#include <openssl/evp.h>
-#include <openssl/rand.h>
 
 // C lib
 //
 #include <fcntl.h>
 #include <termios.h>
+
+
+// last include
+//
+#include <snapdev/poison.h>
+
 
 
 namespace snap
@@ -102,7 +117,25 @@ void evp_md_ctx_deleter(EVP_MD_CTX * mdctx)
 {
     // clean up the context
     // (note: the return value is not documented so we ignore it)
+#if __cplusplus >= 201700
+    EVP_MD_CTX_free(mdctx);
+#else
     EVP_MD_CTX_cleanup(mdctx);
+    delete mdctx;
+#endif
+}
+
+
+EVP_MD_CTX * evp_md_ctx_allocate()
+{
+    EVP_MD_CTX * mdctx(nullptr);
+#if __cplusplus >= 201700
+    mdctx = EVP_MD_CTX_new();
+#else
+    mdctx = new EVP_MD_CTX;
+    EVP_MD_CTX_init(mdctx);
+#endif
+    return mdctx;
 }
 
 
@@ -769,34 +802,32 @@ void password::encrypt_password()
     }
 
     // initialize the digest context
-    EVP_MD_CTX mdctx;
-    EVP_MD_CTX_init(&mdctx);
-    if(EVP_DigestInit_ex(&mdctx, md, nullptr) != 1)
+    std::unique_ptr<EVP_MD_CTX, decltype(&evp_md_ctx_deleter)> mdctx(evp_md_ctx_allocate(), evp_md_ctx_deleter);
+    if(EVP_DigestInit_ex(mdctx.get(), md, nullptr) != 1)
     {
         throw password_exception_encryption_failed("EVP_DigestInit_ex() failed digest initialization");
     }
 
     // RAII cleanup
     //
-    std::unique_ptr<EVP_MD_CTX, decltype(&evp_md_ctx_deleter)> raii_mdctx(&mdctx, evp_md_ctx_deleter);
 
     // add first salt
     //
-    if(EVP_DigestUpdate(&mdctx, f_salt.c_str(), SALT_SIZE / 2) != 1)
+    if(EVP_DigestUpdate(mdctx.get(), f_salt.c_str(), SALT_SIZE / 2) != 1)
     {
         throw password_exception_encryption_failed("EVP_DigestUpdate() failed digest update (salt1)");
     }
 
     // add password
     //
-    if(EVP_DigestUpdate(&mdctx, f_plain_password.c_str(), f_plain_password.length()) != 1)
+    if(EVP_DigestUpdate(mdctx.get(), f_plain_password.c_str(), f_plain_password.length()) != 1)
     {
         throw password_exception_encryption_failed("EVP_DigestUpdate() failed digest update (password)");
     }
 
     // add second salt
     //
-    if(EVP_DigestUpdate(&mdctx, f_salt.c_str() + SALT_SIZE / 2, SALT_SIZE / 2) != 1)
+    if(EVP_DigestUpdate(mdctx.get(), f_salt.c_str() + SALT_SIZE / 2, SALT_SIZE / 2) != 1)
     {
         throw password_exception_encryption_failed("EVP_DigestUpdate() failed digest update (salt2)");
     }
@@ -805,7 +836,7 @@ void password::encrypt_password()
     //
     unsigned char md_value[EVP_MAX_MD_SIZE];
     unsigned int md_len(EVP_MAX_MD_SIZE);
-    if(EVP_DigestFinal_ex(&mdctx, md_value, &md_len) != 1)
+    if(EVP_DigestFinal_ex(mdctx.get(), md_value, &md_len) != 1)
     {
         throw password_exception_encryption_failed("EVP_DigestFinal_ex() digest finalization failed");
     }

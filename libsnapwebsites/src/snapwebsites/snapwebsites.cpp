@@ -1,5 +1,5 @@
 // Snap Websites Server -- snap websites server
-// Copyright (C) 2011-2018  Made to Order Software Corp.
+// Copyright (c) 2011-2019  Made to Order Software Corp.  All Rights Reserved
 //
 // https://snapwebsites.org/
 // contact@m2osw.com
@@ -18,22 +18,25 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
+
 // self
 //
 #include "snapwebsites/snapwebsites.h"
 
+
 // snapwebsites lib
 //
 #include "snapwebsites/log.h"
-#include "snapwebsites/not_used.h"
 #include "snapwebsites/snap_backend.h"
 #include "snapwebsites/snap_cassandra.h"
 #include "snapwebsites/snap_lock.h"
 #include "snapwebsites/snap_tables.h"
 
-// C++ lib
+
+// snapdev lib
 //
-#include <sstream>
+#include <snapdev/not_used.h>
+
 
 // Qt lib
 //
@@ -42,6 +45,12 @@
 #include <QHostAddress>
 #include <QCoreApplication>
 #include <QTextCodec>
+
+
+// C++ lib
+//
+#include <sstream>
+
 
 // C lib
 //
@@ -52,7 +61,13 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
-#include "snapwebsites/poison.h"
+
+// last include
+//
+#include <snapdev/poison.h>
+
+
+
 
 
 /** \file
@@ -364,180 +379,163 @@ extern QString g_next_register_filename;
  */
 namespace
 {
-    /** \brief List of configuration files.
-     *
-     * This variable is used as a list of configuration files. It may be
-     * empty.
-     */
-    std::vector<std::string> const g_configuration_files; // Empty
 
-    /** \brief Command line options.
-     *
-     * This table includes all the options supported by the server.
-     */
-    advgetopt::getopt::option const g_snapserver_options[] =
-    {
-        {
-            '\0',
-            advgetopt::getopt::GETOPT_FLAG_SHOW_USAGE_ON_ERROR,
-            nullptr,
-            nullptr,
-            "Usage: %p [-<opt>]",
-            advgetopt::getopt::argument_mode_t::help_argument
-        },
-        {
-            '\0',
-            advgetopt::getopt::GETOPT_FLAG_SHOW_USAGE_ON_ERROR,
-            nullptr,
-            nullptr,
-            "where -<opt> is one or more of:",
-            advgetopt::getopt::argument_mode_t::help_argument
-        },
-        {
-            'a',
-            advgetopt::getopt::GETOPT_FLAG_ENVIRONMENT_VARIABLE,
-            "action",
-            nullptr,
-            "Specify a server action.",
-            advgetopt::getopt::argument_mode_t::optional_argument
-        },
-        {
-            'b',
-            advgetopt::getopt::GETOPT_FLAG_ENVIRONMENT_VARIABLE,
-            "background",
-            nullptr,
-            "Detaches the server to the background (default is stay in the foreground).",
-            advgetopt::getopt::argument_mode_t::no_argument
-        },
-        {
-            'c',
-            advgetopt::getopt::GETOPT_FLAG_ENVIRONMENT_VARIABLE | advgetopt::getopt::GETOPT_FLAG_SHOW_USAGE_ON_ERROR,
-            "config",
-            nullptr,
-            "Specify the configuration file to load at startup.",
-            advgetopt::getopt::argument_mode_t::optional_argument
-        },
-        {
-            '\0',
-            advgetopt::getopt::GETOPT_FLAG_ENVIRONMENT_VARIABLE,
-            "cron-action",
-            nullptr,
-            "Specify a server CRON action.",
-            advgetopt::getopt::argument_mode_t::optional_argument
-        },
-        {
-            'd',
-            advgetopt::getopt::GETOPT_FLAG_ENVIRONMENT_VARIABLE,
-            "debug",
-            nullptr,
-            "Outputs debug logs. Perform additional checks in various places.",
-            advgetopt::getopt::argument_mode_t::no_argument
-        },
-        {
-            'f',
-            advgetopt::getopt::GETOPT_FLAG_ENVIRONMENT_VARIABLE,
-            "logfile",
-            nullptr,
-            "Output log file to write to. Overrides the setting in the configuration file.",
-            advgetopt::getopt::argument_mode_t::required_argument
-        },
+
+/** \brief Command line options.
+ *
+ * This table includes all the options supported by the server.
+ */
+advgetopt::option const g_snapserver_options[] =
+{
+    advgetopt::define_option(
+          advgetopt::Name("action")
+        , advgetopt::ShortName('a')
+        , advgetopt::Flags(advgetopt::any_flags<advgetopt::GETOPT_FLAG_COMMAND_LINE
+                                              , advgetopt::GETOPT_FLAG_ENVIRONMENT_VARIABLE
+                                              , advgetopt::GETOPT_FLAG_REQUIRED>())
+        , advgetopt::Help("Specify a server action.")
+    ),
+    advgetopt::define_option(
+          advgetopt::Name("background")
+        , advgetopt::ShortName('b')
+        , advgetopt::Flags(advgetopt::option_flags<advgetopt::GETOPT_FLAG_COMMAND_LINE
+                                                 , advgetopt::GETOPT_FLAG_ENVIRONMENT_VARIABLE>())
+        , advgetopt::Help("Detaches the server to the background (default is stay in the foreground.)")
+    ),
+    advgetopt::define_option(
+          advgetopt::Name("config")
+        , advgetopt::ShortName('c')
+        , advgetopt::Flags(advgetopt::any_flags<advgetopt::GETOPT_FLAG_COMMAND_LINE
+                                              , advgetopt::GETOPT_FLAG_ENVIRONMENT_VARIABLE
+                                              , advgetopt::GETOPT_FLAG_REQUIRED
+                                              , advgetopt::GETOPT_FLAG_SHOW_USAGE_ON_ERROR>())
+        , advgetopt::Help("Specify the configuration file to load at startup.")
+    ),
+    advgetopt::define_option(
+          advgetopt::Name("cron-action")
+        , advgetopt::Flags(advgetopt::any_flags<advgetopt::GETOPT_FLAG_COMMAND_LINE
+                                              , advgetopt::GETOPT_FLAG_ENVIRONMENT_VARIABLE
+                                              , advgetopt::GETOPT_FLAG_REQUIRED>())
+        , advgetopt::Help("Specify a server CRON action.")
+    ),
 #ifdef SNAP_NO_FORK
-        {
-            'k',
-            advgetopt::getopt::GETOPT_FLAG_ENVIRONMENT_VARIABLE,
-            "nofork",
-            nullptr,
-            "If set, this switch causes the server not to fork when a child is launched. This should never be use for a production server!",
-            advgetopt::getopt::argument_mode_t::optional_argument
-        },
+    advgetopt::define_option(
+          advgetopt::Name("nofork")
+        , advgetopt::ShortName('k')
+        , advgetopt::Flags(advgetopt::option_flags<advgetopt::GETOPT_FLAG_COMMAND_LINE
+                                                 , advgetopt::GETOPT_FLAG_ENVIRONMENT_VARIABLE>())
+        , advgetopt::Help("If set, this switch causes the server not to fork when a child is launched. This should never be use for a production server!")
+    ),
 #endif
-        {
-            'l',
-            advgetopt::getopt::GETOPT_FLAG_ENVIRONMENT_VARIABLE,
-            "logconf",
-            nullptr,
-            "Log configuration file to read from. Overrides log_config in the configuration file.",
-            advgetopt::getopt::argument_mode_t::required_argument
-        },
-        {
-            '\0',
-            0,
-            "no-messenger-logging",
-            nullptr,
-            "Turn off the automatic logging to snapcommunicator.",
-            advgetopt::getopt::argument_mode_t::no_argument
-        },
-        {
-            'n',
-            advgetopt::getopt::GETOPT_FLAG_ENVIRONMENT_VARIABLE,
-            "no-log",
-            nullptr,
-            "Don't create a logfile, just output to the console.",
-            advgetopt::getopt::argument_mode_t::no_argument
-        },
-        {
-            'h',
-            advgetopt::getopt::GETOPT_FLAG_SHOW_USAGE_ON_ERROR,
-            "help",
-            nullptr,
-            "Show usage and exit.",
-            advgetopt::getopt::argument_mode_t::no_argument
-        },
-        {
-            'p',
-            advgetopt::getopt::GETOPT_FLAG_ENVIRONMENT_VARIABLE,
-            "param",
-            nullptr,
-            "Define one or more server parameters on the command line (-p name=value).",
-            advgetopt::getopt::argument_mode_t::required_multiple_argument
-        },
-        {
-            '\0',
-            0,
-            "version",
-            nullptr,
-            "Show the version of %p and exit.",
-            advgetopt::getopt::argument_mode_t::no_argument
-        },
-        {
-            '\0',
-            0,
-            "filename",
-            nullptr,
-            nullptr, // hidden argument in --help screen
-            advgetopt::getopt::argument_mode_t::default_multiple_argument
-        },
-        {
-            '\0',
-            0,
-            nullptr,
-            nullptr,
-            nullptr,
-            advgetopt::getopt::argument_mode_t::end_of_options
-        }
-    };
+    advgetopt::define_option(
+          advgetopt::Name("param")
+        , advgetopt::ShortName('p')
+        , advgetopt::Flags(advgetopt::any_flags<advgetopt::GETOPT_FLAG_COMMAND_LINE
+                                              , advgetopt::GETOPT_FLAG_ENVIRONMENT_VARIABLE
+                                              , advgetopt::GETOPT_FLAG_REQUIRED
+                                              , advgetopt::GETOPT_FLAG_MULTIPLE>())
+        , advgetopt::Help("Define one or more server parameters on the command line (-p name=value).")
+    ),
+    advgetopt::define_option(
+          advgetopt::Name("filename")
+        , advgetopt::Flags(advgetopt::command_flags<advgetopt::GETOPT_FLAG_DEFAULT_OPTION
+                                                  , advgetopt::GETOPT_FLAG_REQUIRED
+                                                  , advgetopt::GETOPT_FLAG_MULTIPLE>())
+    ),
 
-    struct connection_t
-    {
-        snap_communicator::pointer_t                    f_communicator = snap_communicator::pointer_t();
-        snap_communicator::snap_connection::pointer_t   f_interrupt = snap_communicator::snap_connection::pointer_t();
-        snap_communicator::snap_connection::pointer_t   f_listener = snap_communicator::snap_connection::pointer_t();
-        snap_communicator::snap_connection::pointer_t   f_child_death_listener = snap_communicator::snap_connection::pointer_t();
-        snap_communicator::snap_connection::pointer_t   f_messenger = snap_communicator::snap_connection::pointer_t();
-        snap_communicator::snap_connection::pointer_t   f_cassandra_check_timer = snap_communicator::snap_connection::pointer_t(); // timer in case an error occurs that will not generate a CASSANDRAREADY
-    };
+    // LOG SPECIFIC (moving to snaplogger soon)
+    //
+    advgetopt::define_option(
+          advgetopt::Name("debug")
+        , advgetopt::ShortName('d')
+        , advgetopt::Flags(advgetopt::option_flags<advgetopt::GETOPT_FLAG_COMMAND_LINE
+                                                 , advgetopt::GETOPT_FLAG_ENVIRONMENT_VARIABLE>())
+        , advgetopt::Help("Outputs debug logs. Perform additional checks in various places.")
+    ),
+    advgetopt::define_option(
+          advgetopt::Name("logfile")
+        , advgetopt::ShortName('f')
+        , advgetopt::Flags(advgetopt::any_flags<advgetopt::GETOPT_FLAG_COMMAND_LINE
+                                              , advgetopt::GETOPT_FLAG_ENVIRONMENT_VARIABLE
+                                              , advgetopt::GETOPT_FLAG_REQUIRED>())
+        , advgetopt::Help("Output log file to write to. Overrides the setting in the configuration file.")
+    ),
+    advgetopt::define_option(
+          advgetopt::Name("logconf")
+        , advgetopt::ShortName('l')
+        , advgetopt::Flags(advgetopt::any_flags<advgetopt::GETOPT_FLAG_COMMAND_LINE
+                                              , advgetopt::GETOPT_FLAG_ENVIRONMENT_VARIABLE
+                                              , advgetopt::GETOPT_FLAG_REQUIRED>())
+        , advgetopt::Help("Log configuration file to read from. Overrides log_config in the configuration file.")
+    ),
+    advgetopt::define_option(
+          advgetopt::Name("no-log")
+        , advgetopt::ShortName('n')
+        , advgetopt::Flags(advgetopt::option_flags<advgetopt::GETOPT_FLAG_COMMAND_LINE
+                                                 , advgetopt::GETOPT_FLAG_ENVIRONMENT_VARIABLE>())
+        , advgetopt::Help("Don't create a logfile, just output to the console.")
+    ),
+    advgetopt::define_option(
+          advgetopt::Name("no-messenger-logging")
+        , advgetopt::Flags(advgetopt::option_flags<advgetopt::GETOPT_FLAG_COMMAND_LINE>())
+        , advgetopt::Help("Turn off the automatic logging through snapcommunicator.")
+    ),
 
-    /** \brief The pointers to communicator elements.
-     *
-     * The communicator we use to run the server events.
-     *
-     * \todo
-     * At some point we need to look into whether it would be possible
-     * for us to use a shared pointer. At this point the g_connection
-     * gets allocated and never deleted (not a big deal since it is
-     * ONE instance for the entire time the process is running.)
-     */
-    connection_t *          g_connection = nullptr;
+    advgetopt::end_options()
+};
+
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpedantic"
+advgetopt::options_environment g_snapserver_options_environment =
+{
+    .f_project_name = "snapwebsites",       // this does NOT vary depending on your program, all writable files are under snapwebsites.d/...
+    .f_options = g_snapserver_options,
+    .f_options_files_directory = nullptr,
+    .f_environment_variable_name = "SNAPSERVER_OPTIONS",
+    .f_configuration_files = nullptr,
+    .f_configuration_filename = nullptr,
+    .f_configuration_directories = nullptr,
+    .f_environment_flags = advgetopt::GETOPT_ENVIRONMENT_FLAG_SYSTEM_PARAMETERS,
+    .f_help_header = "Usage: %p [-<opt>]\n"
+                     "where -<opt> is one or more of:",
+    .f_help_footer = "Configuration files:\n"       // TODO: fix the snapserver::usage() function so this works as expected
+                     "%*f\n"
+                     "Environment variable: %e\n"
+                     "%p v%v from %a\n"
+                     "Built on %t\n"
+                     "See also http://www.snapwebsites.org/project",
+    .f_version = SNAPWEBSITES_VERSION_STRING,
+    .f_license = "This software is licenced under the GPL v2 and LGPL v2",
+    .f_copyright = "Copyright (c) 2011-" BOOST_PP_STRINGIZE(UTC_BUILD_YEAR) " by Made to Order Software Corporation",
+    //.f_build_date = UTC_BUILD_DATE,
+    //.f_build_time = UTC_BUILD_TIME
+};
+#pragma GCC diagnostic pop
+
+struct connection_t
+{
+    snap_communicator::pointer_t                    f_communicator = snap_communicator::pointer_t();
+    snap_communicator::snap_connection::pointer_t   f_interrupt = snap_communicator::snap_connection::pointer_t();
+    snap_communicator::snap_connection::pointer_t   f_listener = snap_communicator::snap_connection::pointer_t();
+    snap_communicator::snap_connection::pointer_t   f_child_death_listener = snap_communicator::snap_connection::pointer_t();
+    snap_communicator::snap_connection::pointer_t   f_messenger = snap_communicator::snap_connection::pointer_t();
+    snap_communicator::snap_connection::pointer_t   f_cassandra_check_timer = snap_communicator::snap_connection::pointer_t(); // timer in case an error occurs that will not generate a CASSANDRAREADY
+};
+
+/** \brief The pointers to communicator elements.
+ *
+ * The communicator we use to run the server events.
+ *
+ * \todo
+ * At some point we need to look into whether it would be possible
+ * for us to use a shared pointer. At this point the g_connection
+ * gets allocated and never deleted (not a big deal since it is
+ * ONE instance for the entire time the process is running.)
+ */
+connection_t *          g_connection = nullptr;
+
+
 }
 //namespace
 
@@ -866,20 +864,23 @@ void server::exit( int const code )
  */
 void server::usage()
 {
-    // get the name of the binary, or default to "snapserver" if still undefined
+    // TODO: switch to the config. from advgetopt and then we can just
+    //       use a %<flag> such as %f, %*g, etc.
     //
-    std::string const server_name(f_servername.empty() ? "snapserver" : f_servername);
-
-    std::cerr << "Configuration File: \""
+    std::stringstream ss_footer;
+    ss_footer << "Configuration File: \""
               << f_parameters.get_configuration_path()
               << "/"
               << f_parameters.get_configuration_filename()
               << ".conf\""
-              << std::endl
               << std::endl;
+    std::string footer(ss_footer.str());
+    g_snapserver_options_environment.f_help_footer = footer.c_str();
 
-    f_opt->usage(advgetopt::getopt::status_t::no_error, "Usage: %s -<arg> ...\n", server_name.c_str());
-    NOTREACHED();
+    std::cout << f_opt->usage();
+
+    g_snapserver_options_environment.f_help_footer = nullptr;
+
     exit(1);
 }
 
@@ -1030,7 +1031,7 @@ void server::config(int argc, char * argv[])
     // Parse command-line options...
     //
 
-    f_opt = std::make_shared<advgetopt::getopt>( argc, argv, g_snapserver_options, g_configuration_files, "SNAPSERVER_OPTIONS" );
+    f_opt = std::make_shared<advgetopt::getopt>( g_snapserver_options_environment, argc, argv );
 
     if(f_opt->is_defined("version"))
     {
@@ -1046,6 +1047,11 @@ void server::config(int argc, char * argv[])
     //       name and rename the corresponding functions too at some point
     //
     f_servername = f_opt->get_program_name();
+
+    if(f_service_name.empty())
+    {
+        f_service_name = f_servername;
+    }
 
     // Keep the server in the foreground?
     //
@@ -1245,6 +1251,49 @@ void server::config(int argc, char * argv[])
 }
 
 
+/** \brief Define the service name.
+ *
+ * This function sets the service name to the specified parameter. By
+ * default the service name is set to the process name. So for example
+ * the snapserver service name is "snapserver".
+ *
+ * This function is useful to change the service name of processes such
+ * as the snapbackend processes which all use the same process but perform
+ * different services.
+ *
+ * \param[in] service_name  The name of the service using the server class.
+ */
+void server::set_service_name(std::string const & service_name)
+{
+    f_service_name = service_name;
+}
+
+
+/** \brief Retrieve the service name.
+ *
+ * This function returns the service name. This is most often the same
+ * as the servername() parameter only sometimes the service name gets
+ * changed to avoid confusion. For example, snapbackend is used for
+ * several different services such as "list::pagelist" and "images::images".
+ *
+ * \note
+ * The service names should not include colons in their names. The
+ * snapbackend will transform the action name to use underscores
+ * instead (i.e. "list__pagelist" or "images__images".)
+ *
+ * \note
+ * This name is used as the PID filename. It is important for us to be
+ * able to distinguish between various snapbackend processes since each
+ * PID file needs a distinct filename.
+ *
+ * \return A reference to the service name.
+ */
+std::string const & server::get_service_name() const
+{
+    return f_service_name;
+}
+
+
 /** \brief Get the server name.
  *
  * This function retrieves the name of the server. If it is defined in
@@ -1300,7 +1349,7 @@ std::string server::get_server_name()
             if(gethostname(host, sizeof(host)) != 0
             || strlen(host) == 0)
             {
-                throw snapwebsites_exception_parameter_no_available("snapwebsites.cpp: server::get_server_name() could not determine the name of this server.");
+                throw snapwebsites_exception_parameter_not_available("snapwebsites.cpp: server::get_server_name() could not determine the name of this server.");
             }
             // TODO: add code to verify that we like that name (i.e. if the
             //       name includes periods we will reject it when sending
@@ -1651,6 +1700,16 @@ bool server::check_cassandra(QString const & mandatory_table, bool & timer_requi
 /** \brief Detach the server unless in foreground mode.
  *
  * This function detaches the server unless it is in foreground mode.
+ *
+ * \warning
+ * It is very important that you call the server_loop_ready() function
+ * after having called the detach() function. We expect that other
+ * function to be called just before you enter the server loop.
+ * In our case that generally means before calling the
+ * snap_communicator->run() function. That way, if anything in the
+ * initialization process fails and the loop is never enetered, we
+ * never signal systemd about being successful which is exactly what
+ * we want.
  */
 void server::detach()
 {
@@ -1659,12 +1718,28 @@ void server::detach()
         return;
     }
 
+    // create a new PID file, this gets a pipe ready for communication
+    // (i.e. the parent wants to wait for the child to be ready and
+    // have had time to create the PID file, something that can only
+    // happen after we called fork() unfortunately...)
+    //
+    f_pid_file.reset(new snap_pid(f_service_name));
+
     // detaching using fork()
+    //
     pid_t const child_pid(fork());
     if(child_pid == 0)
     {
         // this is the child, make sure we keep the log alive
+        //
         logging::reconfigure();
+
+        // at some point we want to save our PID in the PID file,
+        // this means we're ready (as far as systemd is concerned)
+        // but we want to do that just before entering the server
+        // loop because if anything fails before that happens we
+        // do not want to tell systemd that we succeessfully started
+        //
         return;
     }
 
@@ -1675,12 +1750,33 @@ void server::detach()
         exit(1);
     }
 
-    // since we are quitting immediately we do not need to save the child_pid
-    //
-    // TODO: actually save the child PID in a file... this would make
-    //       systemd happy (know once the process is considered initialized)
+    int const code(f_pid_file->wait_signal() ? 0 : 1);
 
-    exit(0);
+    exit(code);
+}
+
+
+/** \brief The server is ready to enter the server loop.
+ *
+ * If you use the detach() function, this function must be called just
+ * before you enter the server loop itself. In most cases, our server
+ * loop starts at the time we call the snap_communicator::run() function.
+ *
+ * This function finishes up the PID file initialization by creating the
+ * actual file and sending a signal to the parent process (through the
+ * pipe created for this purpose.)
+ *
+ * It is very important that this function gets called because otherwise
+ * the parent stays stuck waiting for its signal and instead of returning
+ * as expected, it will linger. This means systemd will not understand
+ * what the process status is.
+ */
+void server::server_loop_ready()
+{
+    if(f_pid_file != nullptr)
+    {
+        f_pid_file->create_pid_file();
+    }
 }
 
 
@@ -1731,7 +1827,11 @@ void server::udp_ping_server( QString const & service, QString const & uri )
     QString const communicator_addr_port( f_parameters(QString("snapcommunicator"), "signal") );
     tcp_client_server::get_addr_port(communicator_addr_port, addr, port, "udp");
 
-    snap_communicator::snap_udp_server_message_connection::send_message(addr.toUtf8().data(), port, ping);
+    snap_communicator::snap_udp_server_message_connection::send_message(
+                  addr.toUtf8().data()
+                , port
+                , ping
+                , f_parameters(QString("snapcommunicator"), "signal_secret").toUtf8().data());
 }
 
 
@@ -1791,7 +1891,11 @@ void server::udp_rusage(QString const & process_name)
     QString const communicator_addr_port( f_parameters(QString("snapcommunicator"), "signal") );
     tcp_client_server::get_addr_port(communicator_addr_port, addr, port, "udp");
 
-    snap_communicator::snap_udp_server_message_connection::send_message(addr.toUtf8().data(), port, rusage_message);
+    snap_communicator::snap_udp_server_message_connection::send_message(
+                      addr.toUtf8().data()
+                    , port
+                    , rusage_message
+                    , f_parameters(QString("snapcommunicator"), "signal_secret").toUtf8().data());
 }
 
 
@@ -1865,7 +1969,11 @@ void server::block_ip( QString const & uri, QString const & period, QString cons
 
     // send the message using a UDP signal
     //
-    snap::snap_communicator::snap_udp_server_message_connection::send_message(addr.toUtf8().data(), port, message);
+    snap::snap_communicator::snap_udp_server_message_connection::send_message(
+                      addr.toUtf8().data()
+                    , port
+                    , message
+                    , config["signal_secret"]);
 }
 
 
@@ -2738,7 +2846,10 @@ void server::listen()
     // get the snapcommunicator IP and port
     QString communicator_addr("127.0.0.1");
     int communicator_port(4040);
-    tcp_client_server::get_addr_port(QString::fromUtf8(f_parameters("snapcommunicator", "local_listen").c_str()), communicator_addr, communicator_port, "tcp");
+    tcp_client_server::get_addr_port(QString::fromUtf8(f_parameters("snapcommunicator", "local_listen").c_str())
+                                   , communicator_addr
+                                   , communicator_port
+                                   , "tcp");
 
     // TBD: Would we need a lock sooner? if so, we are in trouble...
     //      Initialize the snap communicator information in snap_lock
@@ -2784,6 +2895,8 @@ void server::listen()
 
     // the server was successfully started
     SNAP_LOG_INFO("Snap v" SNAPWEBSITES_VERSION_STRING " on \"")(get_server_name())("\" started.");
+
+    server_loop_ready();
 
     // run until we get killed
     g_connection->f_communicator->run();
@@ -3604,7 +3717,8 @@ void server::backend_action_set::add_action(QString const & action, plugin * p)
     backend_action * ba(dynamic_cast<backend_action *>(p));
     if(ba == nullptr)
     {
-        throw snapwebsites_exception_invalid_parameters("snapwebsites.cpp: server::backend_action_set::add_action() was called with \"%1\" twice.");
+        throw snapwebsites_exception_invalid_parameters("snapwebsites.cpp:"
+                            " could not cast p to a backend_action pointer");
     }
 
     // calculate the full name of this action
@@ -3615,9 +3729,12 @@ void server::backend_action_set::add_action(QString const & action, plugin * p)
     //
     if(f_actions.contains(name))
     {
-        throw snapwebsites_exception_invalid_parameters("snapwebsites.cpp: server::backend_action_set::add_action() was called with \"%1\" twice.");
+        throw snapwebsites_exception_invalid_parameters(
+                QString("snapwebsites.cpp: server::backend_action_set::add_action()"
+                        " was called with \"%1\" twice.").arg(name));
     }
 
+SNAP_LOG_DEBUG("adding action \"")(name)("\".");
     f_actions[name] = ba;
 }
 

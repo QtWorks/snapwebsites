@@ -1,6 +1,6 @@
 // Snap Communicator -- classes to ease handling communication between processes
 
-// Copyright (C) 2012-2018  Made to Order Software Corp.
+// Copyright (c) 2012-2019  Made to Order Software Corp.  All Rights Reserved
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -17,19 +17,28 @@
 // Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #pragma once
 
+// self
+//
 #include "snapwebsites/snap_exception.h"
 #include "snapwebsites/snap_thread.h"
 #include "snapwebsites/tcp_client_server.h"
 #include "snapwebsites/udp_client_server.h"
-#include "snapwebsites/not_used.h"
 //#include "snapwebsites/log.h" -- not sensible here at this time because log.h includes snap_communicator.h -- See Jira SNAP-623
 #include "snapwebsites/snap_string_list.h"
 
+// snapdev lib
+//
+#include <snapdev/not_used.h>
+
+// Qt lib
+//
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wctor-dtor-privacy"
 #include <QMap>
 #pragma GCC diagnostic pop
 
+// C lib
+//
 #include <signal.h>
 #include <sys/signalfd.h>
 
@@ -856,6 +865,12 @@ public:
         // snap_connection implementation
         virtual bool                is_reader() const override;
         virtual int                 get_socket() const override;
+
+        void                        set_secret_code(std::string const & secret_code);
+        std::string const &         get_secret_code() const;
+
+    private:
+        std::string                 f_secret_code = std::string();
     };
 
     class snap_udp_server_message_connection
@@ -869,7 +884,10 @@ public:
 
                                     snap_udp_server_message_connection(std::string const & addr, int port);
 
-        static bool                 send_message(std::string const & addr, int port, snap_communicator_message const & message);
+        static bool                 send_message(std::string const & addr
+                                               , int port
+                                               , snap_communicator_message const & message
+                                               , std::string const & secret_code = std::string());
 
         // snap_connection implementation
         virtual void                process_read() override;

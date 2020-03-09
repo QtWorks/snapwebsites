@@ -1,5 +1,5 @@
 // Snap Websites Server -- snap websites server
-// Copyright (c) 2011-2018  Made to Order Software Corp.  All Rights Reserved
+// Copyright (c) 2011-2019  Made to Order Software Corp.  All Rights Reserved
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -56,7 +56,6 @@ public:
     void                                connect();
     void                                disconnect();
     libdbproxy::context::pointer_t      get_snap_context();
-    void                                create_table_list();
     libdbproxy::table::pointer_t        get_table(QString const & table_name);
 
     QString                             get_snapdbproxy_addr() const;

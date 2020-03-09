@@ -1,5 +1,5 @@
 // Snap Websites Server -- users handling
-// Copyright (c) 2012-2018  Made to Order Software Corp.  All Rights Reserved
+// Copyright (c) 2012-2019  Made to Order Software Corp.  All Rights Reserved
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -15,29 +15,54 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
+
+// self
+//
 #include "users.h"
 
+
+// other plugins
+//
 #include "../output/output.h"
 #include "../list/list.h"
 #include "../locale/snap_locale.h"
 #include "../messages/messages.h"
 #include "../server_access/server_access.h"
 
+
+// snapwebsites lib
+//
 #include <snapwebsites/log.h>
-#include <snapwebsites/not_reached.h>
-#include <snapwebsites/not_used.h>
 #include <snapwebsites/qdomhelpers.h>
 #include <snapwebsites/qstring_stream.h>
 #include <snapwebsites/snap_lock.h>
 
+
+// snapdev lib
+//
+#include <snapdev/not_reached.h>
+#include <snapdev/not_used.h>
+
+
+// C++ lib
+//
 #include <iostream>
 
+
+// Qt lib
+//
 #include <QFile>
 
+
+// OpenSSL lib
+//
 #include <openssl/evp.h>
 #include <openssl/rand.h>
 
-#include <snapwebsites/poison.h>
+
+// last include
+//
+#include <snapdev/poison.h>
 
 
 SNAP_PLUGIN_EXTENSION_START(users)
@@ -478,7 +503,7 @@ users::user_info_t::cell_t users::user_info_t::get_cell( name_t const name ) con
  */
 users::user_info_t::value_t const & users::user_info_t::get_value( QString const & name ) const
 {
-    static value_t empty;
+    static value_t const empty;
 
     // only users have a value in the database
     //

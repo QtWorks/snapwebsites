@@ -11,7 +11,7 @@
  *      See each function below.
  *
  * License:
- *      Copyright (c) 2011-2018  Made to Order Software Corp.  All Rights Reserved
+ *      Copyright (c) 2011-2019  Made to Order Software Corp.  All Rights Reserved
  * 
  *      https://snapwebsites.org/
  *      contact@m2osw.com
@@ -207,6 +207,39 @@ const QByteArray& row::rowKey() const
 }
 
 
+/** \brief Retrieve the current timeout.
+ *
+ * This function retrieves the timeout used to wait less or more that
+ * a statement completes.
+ *
+ * The value is in milliseconds.
+ *
+ * If the value is set to 0 then the default order timeout gets used.
+ * This is often 10 seconds. This is often used the backend to increase
+ * our chances of getting the data back because in many cases getting the
+ * info is more important than speed.
+ *
+ * \return The timeout in milliseconds.
+ */
+int32_t row::timeout() const
+{
+    return f_timeout_ms;
+}
+
+
+/** \brief Timeout for orders sent from this row object.
+ *
+ * This value is the timeout in milleseconds for any CQL statement sent
+ * to the backend by the row object.
+ *
+ * \param[in] timeout_ms  The new timeout value in milliseconds.
+ */
+void row::setTimeout(int32_t const timeout_ms)
+{
+    f_timeout_ms = timeout_ms;
+}
+
+
 /** \brief Retrieve the number of cells defined in this row.
  *
  * This function retrieves the number of cells currently defined in this row,
@@ -306,11 +339,15 @@ uint32_t row::readCells( cell_predicate::pointer_t column_predicate )
         order select_more_cells;
         select_more_cells.setCql("FETCH", order::type_of_result_t::TYPE_OF_RESULT_FETCH);
         select_more_cells.setCursorIndex(f_cursor_index);
+        if(f_timeout_ms > 0)
+        {
+            select_more_cells.setTimeout(f_timeout_ms);
+        }
         order_result select_more_cells_result(parentTable()->getProxy()->sendOrder(select_more_cells));
         selected_cells_result.swap(select_more_cells_result);
         if(!selected_cells_result.succeeded())
         {
-            throw exception("select cells failed");
+            throw exception("select cells failed (FETCH)");
         }
 
         if(selected_cells_result.resultCount() == 0)
@@ -350,7 +387,7 @@ uint32_t row::readCells( cell_predicate::pointer_t column_predicate )
         row_predicate->appendQuery( query_string, bind_count );
 
         // WARNING: the row_predicate we create right here, when the
-        //          allow filtering flag can only be set by the caller
+        //          ALLOW FILTERING flag can only be set by the caller
         //          in the column_predicate
         //
         if(column_predicate->allowFiltering())
@@ -364,6 +401,10 @@ uint32_t row::readCells( cell_predicate::pointer_t column_predicate )
         select_cells.setCql(query_string, order::type_of_result_t::TYPE_OF_RESULT_DECLARE);
         select_cells.setConsistencyLevel( consistency_level );
         select_cells.setColumnCount(2);
+        if(f_timeout_ms > 0)
+        {
+            select_cells.setTimeout(f_timeout_ms);
+        }
 
         row_predicate->bindOrder( select_cells );
 
@@ -378,7 +419,7 @@ uint32_t row::readCells( cell_predicate::pointer_t column_predicate )
         selected_cells_result.swap(select_cells_result);
         if(!selected_cells_result.succeeded())
         {
-            throw exception("select cells failed");
+            throw exception("select cells failed (SELECT)");
         }
 
         if(selected_cells_result.resultCount() < 1)
@@ -399,7 +440,7 @@ uint32_t row::readCells( cell_predicate::pointer_t column_predicate )
 #ifdef _DEBUG
     if((max_results - idx) % 2 != 0)
     {
-        // the number of results must be a multiple of 3, although on
+        // the number of results must be a multiple of 2, although on
         // the SELECT (first time in) we expect one additional result
         // which represents the cursor index
         throw logic_exception("the number of results must be an exact multipled of 2!");
@@ -853,6 +894,10 @@ void row::closeCursor()
         order close_cursor;
         close_cursor.setCql("CLOSE", order::type_of_result_t::TYPE_OF_RESULT_CLOSE);
         close_cursor.setCursorIndex(f_cursor_index);
+        if(f_timeout_ms > 0)
+        {
+            close_cursor.setTimeout(f_timeout_ms);
+        }
         order_result close_cursor_result(parentTable()->getProxy()->sendOrder(close_cursor));
         if(!close_cursor_result.succeeded())
         {

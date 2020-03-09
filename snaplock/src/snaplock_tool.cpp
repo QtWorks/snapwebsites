@@ -11,7 +11,7 @@
  *      statistics.
  *
  * License:
- *      Copyright (c) 2016-2018  Made to Order Software Corp.  All Rights Reserved
+ *      Copyright (c) 2016-2019  Made to Order Software Corp.  All Rights Reserved
  *
  *      https://snapwebsites.org/
  *      contact@m2osw.com
@@ -37,18 +37,19 @@
  */
 
 
-// ourselves
+// self
 //
 #include "snaplock.h"
 
-// our lib
+
+// snapwebsites lib
 //
 #include <snapwebsites/log.h>
 
 
-// last entry
+// last include
 //
-#include <snapwebsites/poison.h>
+#include <snapdev/poison.h>
 
 
 

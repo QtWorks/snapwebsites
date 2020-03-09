@@ -1,5 +1,5 @@
 // Snap Websites Server -- test shutdown() on socket (client side)
-// Copyright (c) 2014-2018  Made to Order Software Corp.  All Rights Reserved
+// Copyright (c) 2014-2019  Made to Order Software Corp.  All Rights Reserved
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -24,19 +24,41 @@
 // client won't be able to connect.
 //
 
+
+// snapwebsites lib
+//
 #include <snapwebsites/log.h>
-#include <snapwebsites/not_reached.h>
 #include <snapwebsites/qstring_stream.h>
 #include <snapwebsites/snap_communicator.h>
 
+
+// snapdev lib
+//
+#include <snapdev/not_reached.h>
+
+
+// Qt lib
+//
+#include <QDir>
+
+
+// C++ lib
+//
+#include <iostream>
+
+
+// C lib
+//
 #include <fcntl.h>
 #include <netinet/tcp.h>
 #include <sys/ioctl.h>
 #include <unistd.h>
 
-#include <iostream>
 
-#include <QDir>
+// last include
+//
+#include <snapdev/poison.h>
+
 
 
 

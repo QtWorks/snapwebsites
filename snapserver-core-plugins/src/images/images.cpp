@@ -1,5 +1,5 @@
 // Snap Websites Server -- handling of images
-// Copyright (c) 2014-2018  Made to Order Software Corp.  All Rights Reserved
+// Copyright (c) 2014-2019  Made to Order Software Corp.  All Rights Reserved
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -15,21 +15,42 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
+
+// self
+//
 #include "images.h"
 
+
+// other plugins
+//
 #include "../listener/listener.h"
 #include "../messages/messages.h"
 #include "../users/users.h"
 
+
+// snapwebsites lib
+//
 #include <snapwebsites/dbutils.h>
 #include <snapwebsites/log.h>
-#include <snapwebsites/not_used.h>
 #include <snapwebsites/snap_image.h>
 
+
+// snapdev lib
+//
+#include <snapdev/not_used.h>
+
+
+// C++ lib
+//
 #include <iostream>
 #include <algorithm>
 
-#include <snapwebsites/poison.h>
+
+// last include
+//
+#include <snapdev/poison.h>
+
+
 
 
 SNAP_PLUGIN_START(images, 1, 0)
@@ -2455,7 +2476,7 @@ bool images::func_write(parameters_t & params)
         {
             params.f_image_stack.back().magick(ext.toUtf8().data());
         }
-        catch(Magick::Exception const e)
+        catch(Magick::Exception const & e)
         {
             // TODO: ignore the error...
             //       we may need to force a default format or report the

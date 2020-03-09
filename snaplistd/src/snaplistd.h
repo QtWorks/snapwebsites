@@ -7,7 +7,7 @@
  *      can manage them.
  *
  * License:
- *      Copyright (c) 2016-2018  Made to Order Software Corp.  All Rights Reserved
+ *      Copyright (c) 2016-2019  Made to Order Software Corp.  All Rights Reserved
  *
  *      https://snapwebsites.org/
  *      contact@m2osw.com
@@ -138,7 +138,6 @@ private:
                                 snaplistd( snaplistd const & ) = delete;
     snaplistd &                  operator = ( snaplistd const & ) = delete;
 
-    void                        usage(advgetopt::getopt::status_t status);
     void                        list_data(snap::snap_communicator_message const & message);
     void                        no_mysql();
 

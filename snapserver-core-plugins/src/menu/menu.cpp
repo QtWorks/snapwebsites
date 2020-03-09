@@ -1,5 +1,5 @@
 // Snap Websites Server -- generate lists of links and display them
-// Copyright (c) 2014-2018  Made to Order Software Corp.  All Rights Reserved
+// Copyright (c) 2014-2019  Made to Order Software Corp.  All Rights Reserved
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -15,20 +15,43 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
+
+// self
+//
 #include "menu.h"
 
+
+// other plugins
+//
 #include "../content/content.h"
 #include "../output/output.h"
 
+
+// snapwebsites lib
+//
 #include <snapwebsites/log.h>
-#include <snapwebsites/not_reached.h>
-#include <snapwebsites/not_used.h>
 
-#include <iostream>
 
+// snapdev lib
+//
+#include <snapdev/not_reached.h>
+#include <snapdev/not_used.h>
+
+
+// Qt lib
+//
 #include <QtCore/QDebug>
 
-#include <snapwebsites/poison.h>
+
+// C++ lib
+//
+#include <iostream>
+
+
+// last include
+//
+#include <snapdev/poison.h>
+
 
 
 SNAP_PLUGIN_START(menu, 1, 0)

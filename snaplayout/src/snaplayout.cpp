@@ -6,7 +6,7 @@
  *      Save layout files in the Snap database.
  *
  * License:
- *      Copyright (c) 2012-2018  Made to Order Software Corp.  All Rights Reserved
+ *      Copyright (c) 2012-2019  Made to Order Software Corp.  All Rights Reserved
  * 
  *      https://snapwebsites.org/
  *      contact@m2osw.com
@@ -33,29 +33,58 @@
 
 #include "version.h"
 
-#include <snapwebsites/not_reached.h>
+
+// snapwebsites lib
+//
 #include <snapwebsites/qstring_stream.h>
 #include <snapwebsites/snap_version.h>
 #include <snapwebsites/snap_image.h>
 #include <snapwebsites/snapwebsites.h>
 
-#include <advgetopt/advgetopt.h>
 
+// snapdev lib
+//
+#include <snapdev/not_reached.h>
+
+
+// advgetopt lib
+//
+#include <advgetopt/advgetopt.h>
+#include <advgetopt/exception.h>
+
+
+// libdbproxy lib
+//
 #include <libdbproxy/value.h>
 
+
+// casswrapper lib
+//
 #include <casswrapper/schema.h>
 #include <casswrapper/session.h>
 #include <casswrapper/query.h>
 
+
+// zipios lib
+//
 #include <zipios/zipfile.hpp>
 
+
+// C++ lib
+//
 #include <algorithm>
 #include <iostream>
 #include <fstream>
 #include <sstream>
 
+
+// C lib
+//
 #include <sys/stat.h>
 
+
+// Qt lib
+//
 #include <QDomDocument>
 #include <QDomElement>
 #include <QDateTime>
@@ -63,7 +92,12 @@
 #include <QTextStream>
 #include <QXmlInputSource>
 
-#include <snapwebsites/poison.h>
+
+// last include
+//
+#include <snapdev/poison.h>
+
+
 
 using namespace casswrapper;
 using namespace libdbproxy;
@@ -71,12 +105,6 @@ using namespace libdbproxy;
 namespace
 {
 
-/** \brief A vector of string is required for f_opt
- *
- * The vector is kept empty. It is required to parse the command line
- * options but snaplayout does not make use of configuration files.
- */
-const std::vector<std::string> g_configuration_files; // Empty
 
 
 /** \brief The options of the snaplayout command line tool.
@@ -84,121 +112,121 @@ const std::vector<std::string> g_configuration_files; // Empty
  * This table represents all the options available on the snaplayout
  * command line.
  */
-advgetopt::getopt::option const g_snaplayout_options[] =
+advgetopt::option const g_options[] =
 {
     {
         '\0',
-        advgetopt::getopt::GETOPT_FLAG_SHOW_USAGE_ON_ERROR,
-        NULL,
-        NULL,
-        "Usage: %p [<options>] <layout filename(s)>",
-        advgetopt::getopt::argument_mode_t::help_argument
-    },
-    {
-        '\0',
-        advgetopt::getopt::GETOPT_FLAG_SHOW_USAGE_ON_ERROR,
-        NULL,
-        NULL,
-        "where options are one or more of:",
-        advgetopt::getopt::argument_mode_t::help_argument
-    },
-    {
-        '?',
-        advgetopt::getopt::GETOPT_FLAG_SHOW_USAGE_ON_ERROR,
-        "help",
-        nullptr,
-        "show this help output",
-        advgetopt::getopt::argument_mode_t::no_argument
-    },
-    {
-        '\0',
-        advgetopt::getopt::GETOPT_FLAG_SHOW_USAGE_ON_ERROR,
+        advgetopt::GETOPT_FLAG_COMMAND_LINE | advgetopt::GETOPT_FLAG_ENVIRONMENT_VARIABLE | advgetopt::GETOPT_FLAG_REQUIRED | advgetopt::GETOPT_FLAG_SHOW_USAGE_ON_ERROR,
         "context",
         "snap_websites",
         "Specify the context (keyspace) to connect to.",
-        advgetopt::getopt::argument_mode_t::optional_argument
+        nullptr
     },
     {
         'x',
-        advgetopt::getopt::GETOPT_FLAG_SHOW_USAGE_ON_ERROR,
+        advgetopt::GETOPT_FLAG_COMMAND_LINE | advgetopt::GETOPT_FLAG_FLAG | advgetopt::GETOPT_FLAG_SHOW_USAGE_ON_ERROR,
         "extract",
         nullptr,
         "extract a file from the specified layout and filename",
-        advgetopt::getopt::argument_mode_t::no_argument
+        nullptr
     },
     {
         'h',
-        advgetopt::getopt::GETOPT_FLAG_SHOW_USAGE_ON_ERROR,
+        advgetopt::GETOPT_FLAG_COMMAND_LINE | advgetopt::GETOPT_FLAG_ENVIRONMENT_VARIABLE | advgetopt::GETOPT_FLAG_REQUIRED | advgetopt::GETOPT_FLAG_SHOW_USAGE_ON_ERROR,
         "host",
         "localhost",
-        "host IP address or name [default=localhost]",
-        advgetopt::getopt::argument_mode_t::optional_argument
+        "host IP address or name",
+        nullptr
     },
     {
         'p',
-        advgetopt::getopt::GETOPT_FLAG_SHOW_USAGE_ON_ERROR,
+        advgetopt::GETOPT_FLAG_COMMAND_LINE | advgetopt::GETOPT_FLAG_ENVIRONMENT_VARIABLE | advgetopt::GETOPT_FLAG_REQUIRED | advgetopt::GETOPT_FLAG_SHOW_USAGE_ON_ERROR,
         "port",
         "9042",
-        "port on the host to which to connect [default=9042]",
-        advgetopt::getopt::argument_mode_t::optional_argument
+        "port on the host to which to connect",
+        nullptr
     },
     {
         '\0',
-        0,
+        advgetopt::GETOPT_FLAG_COMMAND_LINE | advgetopt::GETOPT_FLAG_FLAG,
         "remove-theme",
         nullptr,
         "remove the specified theme; this remove the entire row and can allow you to reinstall a theme that \"lost\" files",
-        advgetopt::getopt::argument_mode_t::no_argument
+        nullptr
     },
     {
         '\0',
-        advgetopt::getopt::GETOPT_FLAG_SHOW_USAGE_ON_ERROR,
+        advgetopt::GETOPT_FLAG_COMMAND_LINE | advgetopt::GETOPT_FLAG_ENVIRONMENT_VARIABLE | advgetopt::GETOPT_FLAG_FLAG | advgetopt::GETOPT_FLAG_SHOW_USAGE_ON_ERROR,
         "no-ssl",
         nullptr,
         "Supress the use of SSL even if the keys are present.",
-        advgetopt::getopt::argument_mode_t::no_argument
+        nullptr
     },
-    { // at least until we have a way to edit the theme from the website
+    { // at least until we have a way to edit the theme from the website (expect 3 params as filenames)
         't',
-        advgetopt::getopt::GETOPT_FLAG_SHOW_USAGE_ON_ERROR,
+        advgetopt::GETOPT_FLAG_COMMAND_LINE | advgetopt::GETOPT_FLAG_FLAG | advgetopt::GETOPT_FLAG_SHOW_USAGE_ON_ERROR,
         "set-theme",
         nullptr,
         "usage: --set-theme URL [theme|layout] ['\"layout name\";']'",
-        advgetopt::getopt::argument_mode_t::no_argument // expect 3 params as filenames
+        nullptr
     },
     {
         'v',
-        0,
+        advgetopt::GETOPT_FLAG_COMMAND_LINE | advgetopt::GETOPT_FLAG_FLAG,
         "verbose",
         nullptr,
         "show what snaplayout is doing",
-        advgetopt::getopt::argument_mode_t::no_argument // expect 3 params as filenames
+        nullptr
     },
     {
         '\0',
-        0,
-        "version",
+        advgetopt::GETOPT_FLAG_COMMAND_LINE | advgetopt::GETOPT_FLAG_MULTIPLE | advgetopt::GETOPT_FLAG_REQUIRED | advgetopt::GETOPT_FLAG_DEFAULT_OPTION,
+        "--",
         nullptr,
-        "show the version of %p and exit",
-        advgetopt::getopt::argument_mode_t::no_argument
+        "<layout-file1> <layout-file2> ... <layout-fileN> or <layout.zip>",
+        nullptr
     },
     {
         '\0',
-        0,
-        nullptr,
-        nullptr,
-        "layout-file1.xsl layout-file2.xsl ... layout-fileN.xsl or layout.zip",
-        advgetopt::getopt::argument_mode_t::default_multiple_argument
-    },
-    {
-        '\0',
-        0,
+        advgetopt::GETOPT_FLAG_END,
         nullptr,
         nullptr,
         nullptr,
-        advgetopt::getopt::argument_mode_t::end_of_options
+        nullptr
     }
 };
+
+
+
+
+// until we have C++20 remove warnings this way
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpedantic"
+advgetopt::options_environment const g_options_environment =
+{
+    .f_project_name = "snapwebsites",
+    .f_options = g_options,
+    .f_options_files_directory = nullptr,
+    .f_environment_variable_name = "SNAPLAYOUT_OPTIONS",
+    .f_configuration_files = nullptr,
+    .f_configuration_filename = nullptr,
+    .f_configuration_directories = nullptr,
+    .f_environment_flags = advgetopt::GETOPT_ENVIRONMENT_FLAG_PROCESS_SYSTEM_PARAMETERS,
+    .f_help_header = "Usage: %p [-<opt>] <layout filename> ...\n"
+                     "where -<opt> is one or more of:",
+    .f_help_footer = "%c",
+    .f_version = SNAPLAYOUT_VERSION_STRING,
+    .f_license = "GNU GPL v2",
+    .f_copyright = "Copyright (c) 2013-"
+                   BOOST_PP_STRINGIZE(UTC_BUILD_YEAR)
+                   " by Made to Order Software Corporation -- All Rights Reserved",
+    //.f_build_date = UTC_BUILD_DATE,
+    //.f_build_time = UTC_BUILD_TIME
+};
+#pragma GCC diagnostic pop
+
+
+
 
 
 /** \brief Load the data of a stream in a QByteArray.
@@ -241,7 +269,6 @@ class snap_layout
 public:
     snap_layout(int argc, char *argv[]);
 
-    void usage();
     void run();
     void add_files();
     bool load_xml_info(QDomDocument& doc, QString const & filename, QString & layout_name, time_t & layout_modified);
@@ -296,12 +323,13 @@ private:
 
 snap_layout::snap_layout(int argc, char * argv[])
     : f_session( Session::create() )
-    , f_opt( new advgetopt::getopt( argc, argv, g_snaplayout_options, g_configuration_files, "SNAPSERVER_OPTIONS" ) )
+    , f_opt( new advgetopt::getopt( g_options_environment, argc, argv ) )
     , f_verbose(f_opt->is_defined("verbose"))
 {
     if( f_opt->is_defined( "help" ) )
     {
-        usage();
+        std::cerr << f_opt->usage();
+        exit(1);
     }
     if( f_opt->is_defined( "version" ) )
     {
@@ -314,7 +342,7 @@ snap_layout::snap_layout(int argc, char * argv[])
     {
         if( f_opt->is_defined( "set-theme" ) )
         {
-            std::cerr << "usage: snaplayout --set-theme URL [theme|layout] ['\"layout_name\";']'" << std::endl;
+            std::cerr << "usage: snaplayout --set-theme URL theme|layout ['\"layout_name\";']'" << std::endl;
             std::cerr << "note: if layout_name is not specified, the theme/layout is deleted from the database." << std::endl;
             exit(1);
             snap::NOTREACHED();
@@ -332,7 +360,8 @@ snap_layout::snap_layout(int argc, char * argv[])
             snap::NOTREACHED();
         }
         std::cerr << "one or more layout files are required!" << std::endl;
-        usage();
+        std::cerr << f_opt->usage(advgetopt::GETOPT_FLAG_SHOW_USAGE_ON_ERROR);
+        exit(1);
         snap::NOTREACHED();
     }
     if(!f_opt->is_defined("set-theme")
@@ -428,14 +457,6 @@ snap_layout::snap_layout(int argc, char * argv[])
 }
 
 
-void snap_layout::usage()
-{
-    f_opt->usage( advgetopt::getopt::status_t::no_error, "snaplayout" );
-    exit(1);
-    snap::NOTREACHED();
-}
-
-
 bool snap_layout::load_xml_info(QDomDocument & doc, QString const & filename, QString & content_name, time_t & content_modified)
 {
     content_name.clear();
@@ -484,7 +505,11 @@ bool snap_layout::load_xml_info(QDomDocument & doc, QString const & filename, QS
                 QString name(path.mid(9, pos - 9));
                 if(name.isEmpty())
                 {
-                    std::cerr << "error: the XML document seems to have an invalid path in \"" << filename << "\"" << std::endl;
+                    std::cerr << "error: the XML document seems to have an invalid path (\""
+                              << path
+                              << "\") in \""
+                              << filename
+                              << "\"" << std::endl;
                     exit(1);
                     snap::NOTREACHED();
                 }
@@ -844,54 +869,10 @@ void snap_layout::add_files()
 {
     connect();
 
-    const QString context_name( f_opt->get_string("context").c_str() );
+    QString const context_name( f_opt->get_string("context").c_str() );
     if( !tableExists("layout") )
     {
-        //try
-        //{
-        //    const QString query_template(
-        //            "CREATE TABLE IF NOT EXISTS %1.layout (\n"
-        //            "  key BLOB,\n"
-        //            "  column1 BLOB,\n"
-        //            "  value BLOB,\n"
-        //            ") WITH COMPACT STORAGE\n"
-        //            "  AND bloom_filter_fp_chance = 0.01\n"
-        //            "  AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}\n"
-        //            "  AND comment = 'Table of layouts'\n"
-        //            "  AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '22', 'min_threshold': '4'}\n"
-        //            "  AND compression = {'chunk_length_in_kb': '64', 'class': 'org.apache.cassandra.io.compress.LZ4Compressor'}\n"
-        //            "  AND crc_check_chance = 1\n"
-        //            "  AND dclocal_read_repair_chance = 0\n"
-        //            "  AND default_time_to_live = 0\n"
-        //            "  AND gc_grace_seconds = 864000\n"
-        //            "  AND max_index_interval = 2048\n"
-        //            "  AND memtable_flush_period_in_ms = 3600000\n"
-        //            "  AND min_index_interval = 128\n"
-        //            "  AND read_repair_chance = 0\n"
-        //            "  AND speculative_retry = 'NONE'\n"
-        //            "  ;"
-        //            );
-
-        //    std::cout << "Creating table layout";
-        //    auto q( Query::create(f_session) );
-        //    q->query( query_template.arg(context_name) );
-        //    q->start(false);
-        //    while( !q->isReady() )
-        //    {
-        //        std::cout << ".";
-        //    }
-        //    q->getQueryResult();
-        //    q->end();
-        //    std::cout << "done!" << std::endl;
-        //}
-        //catch( const std::exception& ex )
-        //{
-        //    std::cout << "error!" << std::endl;
-        //    std::cerr << "Layout table creation Query exception caught! What=" << ex.what() << std::endl;
-        //    exit(1);
-        //    snap::NOTREACHED();
-        //}
-        std::cerr << "Layout table does not exist yet. Run snapcreatetables at least once on a computer running snapdbproxy." << std::endl;
+        std::cerr << "error: \"layout\" table does not exist yet. Start the \"snapdbproxy\" service at least once so all the tables get created." << std::endl;
         exit(1);
     }
 
@@ -995,11 +976,10 @@ void snap_layout::add_files()
             time_t layout_modified;
             load_xsl_info(doc, filename, row_name, cell_name, layout_modified);
 
-            //if(table->exists(row_name))
             if( rowExists("layout", row_name.toUtf8()) )
             {
                 // the row already exists, try getting the area
-                //value existing(table->getRow(row_name)->getCell(cell_name)->getValue());
+                //
                 libdbproxy::value existing;
                 try
                 {
@@ -1076,26 +1056,27 @@ void snap_layout::add_files()
             q->start();
             q->end();
         }
-        catch( const std::exception& ex )
+        catch( std::exception const & ex )
         {
             std::cerr << "UPDATE layout Query exception caught! what=" << ex.what() << std::endl;
             exit(1);
             snap::NOTREACHED();
         }
-        //table->getRow(row_name)->getCell(cell_name)->setValue(content);
 
         // set last modification time
+        //
         if( !mtimes.contains(row_name) || mtimes[row_name] < info.f_filetime )
         {
             mtimes[row_name] = info.f_filetime;
         }
     }
 
-    const auto last_updated_name( snap::get_name(snap::name_t::SNAP_NAME_CORE_LAST_UPDATED) );
+    auto const last_updated_name( snap::get_name(snap::name_t::SNAP_NAME_CORE_LAST_UPDATED) );
     for( mtimes_t::const_iterator i(mtimes.begin()); i != mtimes.end(); ++i )
     {
         // mtimes holds times in seconds, convert to microseconds
-        const int64_t last_updated(i.value() * 1000000);
+        //
+        int64_t const last_updated(i.value() * 1000000);
         libdbproxy::value existing_last_updated;
         try
         {
@@ -1111,7 +1092,7 @@ void snap_layout::add_files()
             }
             q->end();
         }
-        catch( const std::exception& ex )
+        catch( std::exception const & ex )
         {
             std::cerr << "SELECT existing layout Query exception caught! what=" << ex.what() << std::endl;
             exit(1);
@@ -1120,7 +1101,8 @@ void snap_layout::add_files()
 
         try
         {
-            if( existing_last_updated.nullValue() || existing_last_updated.int64Value() < last_updated )
+            if(existing_last_updated.nullValue()
+            || existing_last_updated.int64Value() < last_updated)
             {
                 auto q( Query::create(f_session) );
                 q->query( QString("UPDATE %1.layout SET value = ? WHERE key = ? and column1 = ?;").arg(context_name) );
@@ -1132,20 +1114,12 @@ void snap_layout::add_files()
                 q->end();
             }
         }
-        catch( const std::exception& ex )
+        catch( std::exception const & ex )
         {
             std::cerr << "UPDATE layout Query exception caught! what=" << ex.what() << std::endl;
             exit(1);
             snap::NOTREACHED();
         }
-#if 0
-        value existing_last_updated(table->getRow(i.key())->getCell(snap::get_name(snap::name_t::SNAP_NAME_CORE_LAST_UPDATED))->getValue());
-        if(existing_last_updated.nullValue()
-        || existing_last_updated.int64Value() < last_updated)
-        {
-            table->getRow(i.key())->getCell(snap::get_name(snap::name_t::SNAP_NAME_CORE_LAST_UPDATED))->setValue(last_updated);
-        }
-#endif
     }
 }
 
@@ -1162,8 +1136,6 @@ void snap_layout::set_theme()
 
     connect();
 
-    //Table::pointer_t table(context->findTable("content"));
-    //if(!table)
     if( !tableExists("content") )
     {
         std::cerr << "Content table not found. You must run the server once before we can setup the theme." << std::endl;
@@ -1197,7 +1169,6 @@ void snap_layout::set_theme()
 
 
     QString const key(QString("%1types/taxonomy/system/content-types").arg(uri));
-    //if(!table->exists(key))
     if( !rowExists("content", key.toUtf8()) )
     {
         std::cerr << "content-types not found for domain \"" << uri << "\"." << std::endl;
@@ -1212,7 +1183,7 @@ void snap_layout::set_theme()
         if( theme.isEmpty() )
         {
             // remove the theme definition
-            //table->getRow(key)->dropCell(field);
+            //
             auto q( Query::create(f_session) );
             q->query( QString("DELETE FROM %1.content WHERE key = ? AND column1 = ?;").arg(context_name) );
             int bind = 0;
@@ -1228,7 +1199,7 @@ void snap_layout::set_theme()
             //
             // TODO: add a test so we can transform a simple string to a valid
             //       JavaScript string
-            //table->getRow(key)->getCell(field)->setValue(theme);
+            //
             auto q( Query::create(f_session) );
             q->query( QString("UPDATE %1.content SET value = ? WHERE key = ? AND column1 = ?;").arg(context_name) );
             int bind = 0;
@@ -1260,8 +1231,6 @@ void snap_layout::remove_theme()
 
     connect();
 
-    //Table::pointer_t table(context->findTable("layout"));
-    //if(!table)
     if( !tableExists("layout") )
     {
         std::cerr << "warning: \"layout\" table not found. If you do not yet have a layout table then no theme can be deleted." << std::endl;
@@ -1270,7 +1239,6 @@ void snap_layout::remove_theme()
     }
 
     QString const row_name( f_opt->get_string( "--", 0 ).c_str() );
-    //if(!table->exists(row_name))
     if( !rowExists("layout", row_name.toUtf8()) )
     {
         std::cerr << "warning: \"" << row_name << "\" layout not found." << std::endl;
@@ -1278,7 +1246,6 @@ void snap_layout::remove_theme()
         snap::NOTREACHED();
     }
 
-    //if(!table->getRow(row_name)->exists("theme"))
     if( !cellExists("layout", row_name.toUtf8(), QByteArray("theme")) )
     {
         std::cerr << "warning: it looks like the \"" << row_name << "\" layout does not exist (no \"theme\" found)." << std::endl;
@@ -1286,7 +1253,6 @@ void snap_layout::remove_theme()
 
     // drop the entire row; however, remember that does not really delete
     // the row itself for a while (it's still visible in the database)
-    //table->dropRow(row_name);
     try
     {
         const QString context_name( f_opt->get_string("context").c_str() );
@@ -1323,8 +1289,6 @@ void snap_layout::extract_file()
 
     connect();
 
-    //Table::pointer_t table(context->findTable("layout"));
-    //if(!table)
     if( !tableExists("layout") )
     {
         std::cerr << "warning: \"layout\" table not found. If you do not yet have a layout table then no theme files can be extracted." << std::endl;
@@ -1333,7 +1297,6 @@ void snap_layout::extract_file()
     }
 
     QString const row_name( f_opt->get_string( "--", 0 ).c_str() );
-    //if(!table->exists(row_name))
     if( !rowExists("layout", row_name.toUtf8()) )
     {
         std::cerr << "warning: \"" << row_name << "\" layout not found." << std::endl;
@@ -1341,14 +1304,11 @@ void snap_layout::extract_file()
         snap::NOTREACHED();
     }
 
-    //if(!table->getRow(row_name)->exists("theme"))
     if( !cellExists("layout", row_name.toUtf8(), QByteArray("theme")) )
     {
         std::cerr << "warning: it looks like the \"" << row_name << "\" layout does not fully exist (no \"theme\" found)." << std::endl;
         // try to continue anyway
     }
-
-    //Row::pointer_t row(table->getRow(row_name));
 
     QString const filename( f_opt->get_string( "--", 1 ).c_str() );
     int const slash_pos(filename.lastIndexOf('/'));
@@ -1361,16 +1321,16 @@ void snap_layout::extract_file()
     {
         basename = filename;
     }
-    //if(!row->exists(basename))
-    if( !cellExists("layout",row_name.toUtf8(),basename.toUtf8()) )
+
+    if( !cellExists("layout", row_name.toUtf8(), basename.toUtf8()) )
     {
         int const extension_pos(basename.lastIndexOf('.'));
         if(extension_pos > 0)
         {
             basename = basename.mid(0, extension_pos);
         }
-        //if(!row->exists(basename))
-        if( !cellExists("layout",row_name.toUtf8(),basename.toUtf8()) )
+
+        if( !cellExists("layout", row_name.toUtf8(), basename.toUtf8()) )
         {
             std::cerr << "error: file \"" << filename << "\" does not exist in this layout." << std::endl;
             exit(1);
@@ -1379,11 +1339,10 @@ void snap_layout::extract_file()
     }
 
     // TODO: if we reach here, the cell may have been dropped earlier...
-    //value value(row->getCell(basename)->getValue());
 
     try
     {
-        const QString context_name( f_opt->get_string("context").c_str() );
+        QString const context_name( f_opt->get_string("context").c_str() );
         auto q( Query::create(f_session) );
         q->query( QString("SELECT value FROM %1.layout WHERE key = ? and column1 = ?;").arg(context_name) );
         int bind = 0;
@@ -1399,12 +1358,11 @@ void snap_layout::extract_file()
                 exit(1);
                 snap::NOTREACHED();
             }
-            //output.write(value.binaryValue());
             output.write( q->getByteArrayColumn("value") );
         }
         q->end();
     }
-    catch( const std::exception& ex )
+    catch( std::exception const & ex )
     {
         std::cerr << "Extract file Query exception caught! what=" << ex.what() << std::endl;
         exit(1);
@@ -1448,6 +1406,10 @@ int main(int argc, char * argv[])
         snap_layout s(argc, argv);
         s.run();
         return 0;
+    }
+    catch( advgetopt::getopt_exit const & except )
+    {
+        return except.code();
     }
     catch(std::exception const & e)
     {

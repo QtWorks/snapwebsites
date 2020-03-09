@@ -1,5 +1,5 @@
 // Snap Websites Server -- Internet avatar functionality
-// Copyright (c) 2015-2018  Made to Order Software Corp.  All Rights Reserved
+// Copyright (c) 2015-2019  Made to Order Software Corp.  All Rights Reserved
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -15,13 +15,27 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
+
+// self
+//
 #include "avatar.h"
 
-#include <snapwebsites/not_used.h>
 
+// snapdev lib
+//
+#include <snapdev/not_used.h>
+
+
+// OpenSSL lib
+//
 #include <openssl/md5.h>
 
-#include <snapwebsites/poison.h>
+
+// last include
+//
+#include <snapdev/poison.h>
+
+
 
 
 SNAP_PLUGIN_START(avatar, 1, 0)
